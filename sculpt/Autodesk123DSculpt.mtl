@@ -5,4 +5,5 @@ Kd 0.500000 0.500000 0.500000
 d 1
 #Ns 0.00000
 #illum 1
-map_Kd tex_1.jpg
+#map_Kd tex_1.jpg
+map_Kd tex_0.jpg

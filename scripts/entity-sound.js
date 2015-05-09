@@ -14,12 +14,14 @@
     function playCollisionSound(entityId, otherId, collision) {
 	/* If we want, this could also have an isPlaying guard... */
 	if (!cachedSound.downloaded) { print("Sound not ready yet."); return; }
+	print('collision start ' + entityId.id);
 	var properties = Entities.getEntityProperties(entityId);
 	var spec = {
             position: properties.position,
             volume: properties.collisionSoundvolume || volume
 	};
 	Audio.playSound(cachedSound, spec);
+	print('collision end ' + entityId.id);
     }
     this.collisionWithEntity = playCollisionSound;
 })

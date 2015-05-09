@@ -11,9 +11,12 @@
      */
     var cachedSound = SoundCache.getSound(this.collisionSoundUrl);
     var volume = this.collisionSoundVolume; /* because it's not really a property yet */
+    var isPlaying = false;
     function playCollisionSound(entityId, otherId, collision) {
 	/* If we want, this could also have an isPlaying guard... */
 	if (!cachedSound.downloaded) { print("Sound not ready yet."); return; }
+	if (isPlaying) { return; }
+	isPlaying = true;
 	print('collision start ' + entityId.id);
 	var properties = Entities.getEntityProperties(entityId);
 	var spec = {
@@ -22,6 +25,7 @@
 	};
 	Audio.playSound(cachedSound, spec);
 	print('collision end ' + entityId.id);
+	isPlaying = false;
     }
     this.collisionWithEntity = playCollisionSound;
 })

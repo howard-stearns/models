@@ -11,17 +11,22 @@
      */
     var cachedSound = SoundCache.getSound(this.collisionSoundUrl);
     var volume = this.collisionSoundVolume; /* because it's not really a property yet */
-    var isPlaying = false;
+    var isPlaying = false; /* I'd rather have overlapping sounds, but let's get everything else working first. */
     function playCollisionSound(entityId, otherId, collision) {
 	/* If we want, this could also have an isPlaying guard... */
 	if (!cachedSound.downloaded) { print("Sound not ready yet."); return; }
 	if (isPlaying) { return; }
 	isPlaying = true;
 	print('collision start ' + entityId.id);
-	var properties = Entities.getEntityProperties(entityId);
+	/* We really want the following, and then to have spec refer to
+	   properties.postion and properties.collisionSoundVolume || volume.
+	   Alas, getEntitiesProperties tries to obtain a lock on the entity,
+	   and can deadlock. Very bad. So the code below cheats instead.
+	   var properties = Entities.getEntityProperties(entityId);
+	*/
 	var spec = {
-            position: properties.position,
-            volume: properties.collisionSoundvolume || volume
+            position: MyAvatar.position, /* properties.position,*/
+            volume: /*properties.collisionSoundVolume || */volume
 	};
 	Audio.playSound(cachedSound, spec);
 	print('collision end ' + entityId.id);

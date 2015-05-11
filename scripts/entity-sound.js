@@ -12,9 +12,12 @@
 	    return;
 	}
 	var properties = Entities.getEntityProperties(entityID);
+
+	/* Temoprary Hack: There isn't yet any MyNodeID property. For now, we just set it. */
+	if (!GlobalServices.MyNodeID) GlobalServices.MyNodeID = properties.simulatorID;
+	
+	/* simulatorID is the node id of physics simulator for this entity. */
 	if (properties.simulatorID != GlobalServices.MyNodeID) {
-	    /* This part doesn't work yet.
-	       simulatorID is the node id of physics simulator for this entity. */
 	    return;
 	}
 	var spec = {

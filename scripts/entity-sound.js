@@ -11,8 +11,9 @@
 	if (injector && injector.isPlaying) {
 	    return;
 	}
+	var properties = Entities.getEntityProperties(entityId);
 	var spec = {
-            position: MyAvatar.position,
+            position: properties.position,
             volume: 1.0
 	};
 	injector = Audio.playSound(cachedSound, spec);

@@ -14,7 +14,10 @@
 		glowLevel = 0;
 	    }
 	}
-	/* If we did alpha, I would set alpha to glowLevel here. */
+	/* If we did alpha, I would set alpha to glowLevel here. 
+	   For a given color background, I suppose we could store
+	   the initial color and then fade to the background color,
+	   and then restore the original at the end, but, ewe? */
 	change.glowLevel = glowLevel;
 	Entities.editEntity(id, change);
 	if (glowLevel > 0) {

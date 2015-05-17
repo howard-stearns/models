@@ -174,6 +174,16 @@ function makeNewProp(which, position) {
   }
 }
 
+var isWired = false;
+function setWiring(on) {
+  if (on && !isWired) {
+    Script.update.connect(update);
+    isWired = true;
+  } else if (isWired) {
+    Script.update.disconnect(update);
+    isWired = false;
+  }
+}
 function update(deltaTime) {
   if (!isReady) return;
   if (Math.random() < 0.1) {
@@ -235,6 +245,7 @@ function mousePressEvent(event) {
     y: event.y
   });
   if (clickedOverlay == spawnButton) {
+    deleteAllTheThings();
     spawnAllTheThings();
   } else if (clickedOverlay == deleteButton) {
     deleteAllTheThings();
@@ -373,12 +384,12 @@ function spawnAllTheThings() {
   paddle1 = makeNewProp("paddle1");
   paddle2 = makeNewProp("paddle2");
 
-  Script.update.connect(update);
+  setWiring(true);
   checkReady();
 }
 
 function deleteAllTheThings() {
-  Script.update.disconnect(update);
+  setWiring(false);
   [].concat(allOurToys).forEach(removeToy)
 }
 

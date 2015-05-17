@@ -10,29 +10,43 @@
 //  See the accompanying file LICENSE or http://www.apache.org/licenses/LICENSE-2.0.html
 //
 
-var debugVisible = false; 
+var debugVisible = false;
 
 var FIELD_WIDTH = 1.21;
 var FIELD_LENGTH = 1.92;
 var FLOOR_THICKNESS = 0.20;
 var EDGE_THICKESS = 0.10;
 var EDGE_HEIGHT = 0.10;
-var DROP_HEIGHT = 0.3; 
+var DROP_HEIGHT = 0.3;
 var PUCK_SIZE = 0.15;
-var PUCK_THICKNESS = 0.03;
-var PADDLE_SIZE = 0.12;
-var PADDLE_THICKNESS = 0.03;
+var PUCK_THICKNESS = 0.05;
+var PADDLE_SIZE = 0.15;
+var PADDLE_THICKNESS = 0.05;
+
+var ENTITY_SEARCH_RANGE = 500;
 
 var GOAL_WIDTH = 0.35;
 
 var GRAVITY = -9.8;
-var LIFETIME = 6000;    
-var PUCK_DAMPING = 0.03;
+var LIFETIME = 6000;
+var PUCK_DAMPING = 0.02;
 var PADDLE_DAMPING = 0.35;
-var ANGULAR_DAMPING = 0.10;
-var PADDLE_ANGULAR_DAMPING = 0.35;
+var ANGULAR_DAMPING = 0.4;
+var PADDLE_ANGULAR_DAMPING = 0.75;
 var MODEL_SCALE = 1.52;
-var MODEL_OFFSET = { x: 0, y: -0.18, z: 0 };
+var MODEL_OFFSET = {
+  x: 0,
+  y: -0.19,
+  z: 0
+};
+
+var LIGHT_OFFSET = {
+  x: 0,
+  y: 0.2,
+  z: 0
+};
+
+var LIGHT_FLASH_TIME = 700;
 
 var scoreSound = SoundCache.getSound("https://s3.amazonaws.com/hifi-public/sounds/Collisions-hitsandslaps/airhockey_score.wav");
 
@@ -41,212 +55,339 @@ var normalTable = "https://hifi-public.s3.amazonaws.com/ozan/props/airHockeyTabl
 var hitSound1 = "https://s3.amazonaws.com/hifi-public/sounds/Collisions-hitsandslaps/airhockey_hit1.wav"
 var hitSound2 = "https://s3.amazonaws.com/hifi-public/sounds/Collisions-hitsandslaps/airhockey_hit2.wav"
 var hitSideSound = "https://s3.amazonaws.com/hifi-public/sounds/Collisions-hitsandslaps/airhockey_hit3.wav"
+var puckModel = "https://hifi-public.s3.amazonaws.com/ozan/props/airHockeyTable/airHockeyPuck.fbx"
+var puckCollisionModel = "http://headache.hungry.com/~seth/hifi/airHockeyPuck-hull.obj"
+var paddleModel = "https://hifi-public.s3.amazonaws.com/ozan/props/airHockeyTable/airHockeyPaddle.obj"
+var paddleCollisionModel = "http://headache.hungry.com/~seth/hifi/paddle-hull.obj"
 
-var center = Vec3.sum(MyAvatar.position, Vec3.multiply((FIELD_WIDTH + FIELD_LENGTH) * 0.60, Quat.getFront(Camera.getOrientation())));
+HIFI_PUBLIC_BUCKET = "http://s3.amazonaws.com/hifi-public/";
+var screenSize = Controller.getViewportDimensions();
+var BUTTON_SIZE = 32;
+var PADDING = 3;
 
-var floor = Entities.addEntity(
-	    	{ type: "Box",
-	        position: Vec3.subtract(center, { x: 0, y: 0, z: 0 }), 
-			dimensions: { x: FIELD_WIDTH, y: FLOOR_THICKNESS, z: FIELD_LENGTH }, 
-	      	color: { red: 128, green: 128, blue: 128 },
-	      	gravity: {  x: 0, y: 0, z: 0 },
-	        ignoreCollisions: false,
-	        locked: true,
-	        visible: debugVisible,
-	        lifetime: LIFETIME });
+var center;
+function offset(delta) { return Vec3.sum(center, delta); }
 
-var edge1 = Entities.addEntity(
-	    	{ type: "Box",
-	    	collisionSoundURL: hitSideSound,
-	        position: Vec3.sum(center, { x: FIELD_WIDTH / 2.0, y: FLOOR_THICKNESS / 2.0, z: 0 }), 
-			dimensions: { x: EDGE_THICKESS, y: EDGE_HEIGHT, z: FIELD_LENGTH + EDGE_THICKESS }, 
-	      	color: { red: 100, green: 100, blue: 100 },
-	      	gravity: {  x: 0, y: 0, z: 0 },
-	        ignoreCollisions: false,
-	        visible: debugVisible,
-	        locked: true,
-	        lifetime: LIFETIME });
+var edgeRestitution = 0.9;
+var floorFriction = 0.01;
 
-var edge2 = Entities.addEntity(
-	    	{ type: "Box",
-	    	collisionSoundURL: hitSideSound,
-	        position: Vec3.sum(center, { x: -FIELD_WIDTH / 2.0, y: FLOOR_THICKNESS / 2.0, z: 0 }), 
-			dimensions: { x: EDGE_THICKESS, y: EDGE_HEIGHT, z: FIELD_LENGTH + EDGE_THICKESS },  
-	      	color: { red: 100, green: 100, blue: 100 },
-	      	gravity: {  x: 0, y: 0, z: 0 },
-	        ignoreCollisions: false,
-	        visible: debugVisible,
-	        locked: true,
-	        lifetime: LIFETIME });
+[hitSound1, hitSound2, hitSideSound].forEach(SoundCache.getSound); // load 'em up
+// Keep track of our toys so we can clean them up.
+var paddle1Pos, paddle2Pos, allOurToys = [];
+function removeToy(item) {
+  allOurToys = allOurToys.filter(function (toy) {
+    return toy !== item;
+  });
+  Entities.editEntity(item, {locked: false});
+  Entities.deleteEntity(item);
+}
+function addToy(spec) {
+  var item = Entities.addEntity(spec);
+  allOurToys.push(item);
+  return item;
+}
+var isReady = false, isChecking = true;
+function isKnown(toy) { return Entities.identifyEntity(toy).isKnownID; }
+function checkReady() {
+  isReady = allOurToys.every(isKnown);
+  if (isReady) {
+    isChecking = false;
+  } else {
+    Script.setTimeout(checkReady, 10);
+  }
+}
+function resetReady() {
+  if (isChecking) return;
+  isChecking = true;
+  isReady = false;
+  checkReady();
+}
 
-var edge3a = Entities.addEntity(
-	    	{ type: "Box",
-	    	collisionSoundURL: hitSideSound,
-	        position: Vec3.sum(center, { x: FIELD_WIDTH / 4.0 + (GOAL_WIDTH / 4.0), y: FLOOR_THICKNESS / 2.0, z: -FIELD_LENGTH / 2.0 }), 
-			dimensions: { x: FIELD_WIDTH / 2.0 - GOAL_WIDTH / 2.0, y: EDGE_HEIGHT, z: EDGE_THICKESS }, 
-	      	color: { red: 100, green: 100, blue: 100 },
-	      	gravity: {  x: 0, y: 0, z: 0 },
-	        ignoreCollisions: false,
-	        visible: debugVisible,
-	        locked: true,
-	        lifetime: LIFETIME });
+function addOverlay(image, x) {
+  return Overlays.addOverlay("image", {
+    x: x,
+    y: screenSize.y - (BUTTON_SIZE * 2 + PADDING),
+    width: BUTTON_SIZE,
+    height: BUTTON_SIZE,
+    imageURL: HIFI_PUBLIC_BUCKET + image,
+    color: {
+      red: 255,
+      green: 255,
+      blue: 255
+    },
+    alpha: 1
+  });
+}
+  
+var deleteButton = addOverlay("images/delete.png", screenSize.x / 2 - BUTTON_SIZE);
+var spawnButton = addOverlay("images/puck.png", screenSize.x / 2 + PADDING);
 
-var edge3b = Entities.addEntity(
-	    	{ type: "Box",
-	    	collisionSoundURL: hitSideSound,
-	        position: Vec3.sum(center, { x: -FIELD_WIDTH / 4.0 - (GOAL_WIDTH / 4.0), y: FLOOR_THICKNESS / 2.0, z: -FIELD_LENGTH / 2.0 }), 
-			dimensions: { x: FIELD_WIDTH / 2.0 - GOAL_WIDTH / 2.0, y: EDGE_HEIGHT, z: EDGE_THICKESS }, 
-	      	color: { red: 100, green: 100, blue: 100 },
-	      	gravity: {  x: 0, y: 0, z: 0 },
-	        ignoreCollisions: false,
-	        visible: debugVisible,
-	        locked: true,
-	        lifetime: LIFETIME });
-
-var edge4a = Entities.addEntity(
-	    	{ type: "Box",
-	    	collisionSoundURL: hitSideSound,
-	        position: Vec3.sum(center, { x: FIELD_WIDTH / 4.0 + (GOAL_WIDTH / 4.0), y: FLOOR_THICKNESS / 2.0, z: FIELD_LENGTH / 2.0 }), 
-			dimensions: { x: FIELD_WIDTH / 2.0 - GOAL_WIDTH / 2.0, y: EDGE_HEIGHT, z: EDGE_THICKESS }, 
-	      	color: { red: 100, green: 100, blue: 100 },
-	      	gravity: {  x: 0, y: 0, z: 0 },
-	        ignoreCollisions: false,
-	        visible: debugVisible,
-	        locked: true,
-	        lifetime: LIFETIME });
-
-var edge4b = Entities.addEntity(
-	    	{ type: "Box",
-	    	collisionSoundURL: hitSideSound,
-	        position: Vec3.sum(center, { x: -FIELD_WIDTH / 4.0 - (GOAL_WIDTH / 4.0), y: FLOOR_THICKNESS / 2.0, z: FIELD_LENGTH / 2.0 }), 
-			dimensions: { x: FIELD_WIDTH / 2.0 - GOAL_WIDTH / 2.0, y: EDGE_HEIGHT, z: EDGE_THICKESS }, 
-	      	color: { red: 100, green: 100, blue: 100 },
-	      	gravity: {  x: 0, y: 0, z: 0 },
-	        ignoreCollisions: false,
-	        visible: debugVisible,
-	        locked: true,
-	        lifetime: LIFETIME });
-
-var table = Entities.addEntity(
-	    	{ type: "Model",
-	    	modelURL: polyTable,
-	    	dimensions: Vec3.multiply({ x: 0.8, y: 0.45,  z: 1.31 }, MODEL_SCALE),
-	        position: Vec3.sum(center, MODEL_OFFSET),
-	        ignoreCollisions: false,
-	        visible: true,
-	        locked: true,
-	        lifetime: LIFETIME });
-
+var light;
 var puck;
 var paddle1, paddle2;
 
 //  Create pucks 
 
-function makeNewProp(which) {
-	if (which == "puck") {
-		return Entities.addEntity(
-	    	{ type: "Model",
-	    	modelURL: "http://headache.hungry.com/~seth/hifi/puck.obj",
-	    	compoundShapeURL: "http://headache.hungry.com/~seth/hifi/puck.obj",
-	    	collisionSoundURL: hitSound1,
-	        position: Vec3.sum(center, { x: 0, y: DROP_HEIGHT, z: 0 }),  
-			dimensions: { x: PUCK_SIZE, y: PUCK_THICKNESS, z: PUCK_SIZE }, 
-	      	gravity: {  x: 0, y: GRAVITY, z: 0 },
-	      	velocity: { x: 0, y: 0.05, z: 0 },
-	        ignoreCollisions: false,
-	        damping: PUCK_DAMPING,
-	        angularDamping: ANGULAR_DAMPING,
-	        lifetime: LIFETIME,
-	        collisionsWillMove: true }); 
-	}
-	else if (which == "paddle1") {
-		return Entities.addEntity(
-	    	{ type: "Model",
-	    	modelURL: "http://headache.hungry.com/~seth/hifi/puck.obj",
-	    	compoundShapeURL: "http://headache.hungry.com/~seth/hifi/puck.obj",
-	    	collisionSoundURL: hitSound2,
-	        position: Vec3.sum(center, { x: 0, y: DROP_HEIGHT, z: FIELD_LENGTH * 0.35 }),  
-			dimensions: { x: PADDLE_SIZE, y: PADDLE_THICKNESS, z: PADDLE_SIZE }, 
-	      	gravity: {  x: 0, y: GRAVITY, z: 0 },
-	      	velocity: { x: 0, y: 0.05, z: 0 },
-	        ignoreCollisions: false,
-	        damping: PADDLE_DAMPING,
-	        angularDamping: PADDLE_ANGULAR_DAMPING,
-	        lifetime: LIFETIME,
-	        collisionsWillMove: true }); 
-	}
-	else if (which == "paddle2") {
-		return Entities.addEntity(
-	    	{ type: "Model",
-	    	modelURL: "http://headache.hungry.com/~seth/hifi/puck.obj",
-	    	compoundShapeURL: "http://headache.hungry.com/~seth/hifi/puck.obj",
-	    	collisionSoundURL: hitSound2,
-	        position: Vec3.sum(center, { x: 0, y: DROP_HEIGHT, z: -FIELD_LENGTH * 0.35 }),  
-			dimensions: { x: PADDLE_SIZE, y: PADDLE_THICKNESS, z: PADDLE_SIZE },
-	      	gravity: {  x: 0, y: GRAVITY, z: 0 },
-	      	velocity: { x: 0, y: 0.05, z: 0 },
-	        ignoreCollisions: false,
-	        damping: PADDLE_DAMPING,
-	        angularDamping: PADDLE_ANGULAR_DAMPING,
-	        lifetime: LIFETIME,
-	        collisionsWillMove: true }); 
-	}
+function makeNewProp(which, position) {
+  function add(name, visual, collision, sound, diameter, thickness, linearDamping, angularDamping, dy, position) {
+    var toy = addToy({
+      name: name,
+      type: "Model",
+      modelURL: visual,
+      compoundShapeURL: collision,
+      collisionSoundURL: sound,
+      position: position,
+      dimensions: {
+	x: diameter,
+	y: thickness,
+	z: diameter
+      },
+      ignoreCollisions: false,
+      damping: linearDamping,
+      angularDamping: angularDamping,
+      lifetime: LIFETIME,
+      collisionsWillMove: true
+    });
+    function dropWhenKnown() {
+      if (isKnown(toy)) {
+	Entities.editEntity(toy, {
+	  gravity: {x: 0, y: GRAVITY, z: 0},
+	  velocity: {x: 0, y: dy, z: 0}
+	});
+      } else {
+	Script.setTimeout(dropWhenKnown, 10);
+      }
+    }
+    dropWhenKnown();
+    return toy;
+  }
+  switch (which) {
+  case "puck":
+    return add("puck", puckModel, puckCollisionModel, hitSound1,
+	PUCK_SIZE, PUCK_THICKNESS, PUCK_DAMPING, ANGULAR_DAMPING, 0.05, offset({x: 0, y: DROP_HEIGHT, z: 0}));
+  case "paddle1":
+    return add("paddle", paddleModel, paddleCollisionModel, hitSound2,
+	PADDLE_SIZE, PADDLE_THICKNESS, PADDLE_DAMPING, PADDLE_ANGULAR_DAMPING, 0.07, paddle1Pos);
+  case "paddle2":
+    return add("paddle", paddleModel, paddleCollisionModel, hitSound2,
+	PADDLE_SIZE, PADDLE_THICKNESS, PADDLE_DAMPING, PADDLE_ANGULAR_DAMPING, 0.07, paddle2Pos);
+  }
 }
 
-
-puck = makeNewProp("puck");
-paddle1 = makeNewProp("paddle1");
-paddle2 = makeNewProp("paddle2");
-
 function update(deltaTime) {
-	if (Math.random() < 0.1) {
-		puckProps = Entities.getEntityProperties(puck);
-		paddle1Props = Entities.getEntityProperties(paddle1);
-		paddle2Props = Entities.getEntityProperties(paddle2);
-		if (puckProps.position.y < (center.y - DROP_HEIGHT)) {
-			Audio.playSound(scoreSound, {
-	      	position: center,
-	      	volume: 1.0
-	    	});
-	    	Entities.deleteEntity(puck);
-	    	puck = makeNewProp("puck");
-		}
-		
-		if (paddle1Props.position.y < (center.y - DROP_HEIGHT)) {
-			Entities.deleteEntity(paddle1);
-	    	paddle1 = makeNewProp("paddle1");
-		}
-		if (paddle2Props.position.y < (center.y - DROP_HEIGHT)) {
-			Entities.deleteEntity(paddle2);
-	    	paddle2 = makeNewProp("paddle2");
-		}
-	}
+  if (!isReady) return;
+  if (Math.random() < 0.1) {
+    var puckProps = Entities.getEntityProperties(puck);
+    var paddle1Props = Entities.getEntityProperties(paddle1);
+    var paddle2Props = Entities.getEntityProperties(paddle2);
+    
+    if (puckProps.position.y < (center.y - DROP_HEIGHT)) {
+      score();
+      resetReady();
+    }
+
+    if (paddle1Props.position.y < (center.y - DROP_HEIGHT)) {
+      removeToy(paddle1);
+      paddle1 = makeNewProp("paddle1");
+      resetReady();
+    }
+    if (paddle2Props.position.y < (center.y - DROP_HEIGHT)) {
+      removeToy(paddle2);
+      paddle2 = makeNewProp("paddle2");
+      resetReady();
+    }
+  }
+}
+
+function score() {
+  Audio.playSound(scoreSound, {
+    position: center,
+    volume: 1.0
+  });
+  puckDropPosition = Entities.getEntityProperties(puck).position;
+  var newPosition;
+  if (Vec3.distance(puckDropPosition, paddle1Pos) > Vec3.distance(puckDropPosition, paddle2Pos)) {
+    newPosition = paddle2Pos;
+  } else {
+    newPosition = paddle1Pos;
+  }
+  Entities.editEntity(puck, {
+    position: newPosition,
+    velocity: {
+      x: 0,
+      y: 0.05,
+      z: 0
+    }
+  });
+  Entities.editEntity(light, {
+    visible: true
+  });
+  Script.setTimeout(function() {
+    Entities.editEntity(light, {
+      visible: false
+    });
+  }, LIGHT_FLASH_TIME);
+}
+
+function mousePressEvent(event) {
+  var clickedOverlay = Overlays.getOverlayAtPoint({
+    x: event.x,
+    y: event.y
+  });
+  if (clickedOverlay == spawnButton) {
+    spawnAllTheThings();
+  } else if (clickedOverlay == deleteButton) {
+    deleteAllTheThings();
+  }
+}
+
+function spawnAllTheThings() {
+  center = Vec3.sum(MyAvatar.position, Vec3.multiply((FIELD_WIDTH + FIELD_LENGTH) * 0.60, Quat.getFront(Camera.getOrientation())));
+  paddle1Pos = offset({
+      x: 0,
+      y: DROP_HEIGHT * 1.5,
+      z: FIELD_LENGTH * 0.35
+  });
+  paddle2Pos = offset({
+    x: 0,
+    y: DROP_HEIGHT * 1.5,
+    z: -FIELD_LENGTH * 0.35
+  });
+  function add(options) {
+    options.type = options.type || "Box";
+    options.gravity = {x: 0, y: 0, z: 0};
+    options.ignorecollisions = false;
+    options.locked = true;
+    options.lifetime = LIFETIME,
+    return addToy(options);
+  }
+  var grey1 = {red: 128, green: 128, blue: 128};
+  var grey2 = {red: 100, green: 100, blue: 100};
+  add({
+    name: "floor",
+    position: offset({x: 0, y: 0, z: 0}),
+    dimensions: {
+      x: FIELD_WIDTH,
+      y: FLOOR_THICKNESS,
+      z: FIELD_LENGTH
+    },
+    color: grey1,
+    friction: floorFriction,
+    visible: debugVisible,
+  });
+  function addEdge(position, dimensions) {
+    add({
+      name: 'edge',
+      collisionSoundURL: hitSideSound,
+      position: position,
+      dimensions: dimensions,
+      color: grey2,
+      visible: debugVisible,
+      restitution: edgeRestitution
+    });
+  }
+  addEdge(offset({
+    x: FIELD_WIDTH / 2.0,
+    y: FLOOR_THICKNESS / 2.0,
+    z: 0
+  }), {
+    x: EDGE_THICKESS,
+    y: EDGE_HEIGHT,
+    z: FIELD_LENGTH + EDGE_THICKESS
+  });
+  addEdge(offset({
+      x: -FIELD_WIDTH / 2.0,
+      y: FLOOR_THICKNESS / 2.0,
+      z: 0
+    }), {
+      x: EDGE_THICKESS,
+      y: EDGE_HEIGHT,
+      z: FIELD_LENGTH + EDGE_THICKESS
+    });
+  addEdge(offset({
+      x: FIELD_WIDTH / 4.0 + (GOAL_WIDTH / 4.0),
+      y: FLOOR_THICKNESS / 2.0,
+      z: -FIELD_LENGTH / 2.0
+    }), {
+      x: FIELD_WIDTH / 2.0 - GOAL_WIDTH / 2.0,
+      y: EDGE_HEIGHT,
+      z: EDGE_THICKESS
+    });
+  addEdge(offset({
+      x: -FIELD_WIDTH / 4.0 - (GOAL_WIDTH / 4.0),
+      y: FLOOR_THICKNESS / 2.0,
+      z: -FIELD_LENGTH / 2.0
+    }), {
+      x: FIELD_WIDTH / 2.0 - GOAL_WIDTH / 2.0,
+      y: EDGE_HEIGHT,
+      z: EDGE_THICKESS
+    });
+  addEdge(offset({
+      x: FIELD_WIDTH / 4.0 + (GOAL_WIDTH / 4.0),
+      y: FLOOR_THICKNESS / 2.0,
+      z: FIELD_LENGTH / 2.0
+    }), {
+      x: FIELD_WIDTH / 2.0 - GOAL_WIDTH / 2.0,
+      y: EDGE_HEIGHT,
+      z: EDGE_THICKESS
+    });
+  addEdge(offset({
+    x: -FIELD_WIDTH / 4.0 - (GOAL_WIDTH / 4.0),
+    y: FLOOR_THICKNESS / 2.0,
+    z: FIELD_LENGTH / 2.0
+  }), {
+    x: FIELD_WIDTH / 2.0 - GOAL_WIDTH / 2.0,
+    y: EDGE_HEIGHT,
+    z: EDGE_THICKESS
+  });
+  add({
+    name: "table",
+    type: "Model",
+    modelURL: polyTable,
+    dimensions: Vec3.multiply({
+      x: 0.8,
+      y: 0.45,
+      z: 1.31
+    }, MODEL_SCALE),
+    position: offset(MODEL_OFFSET),
+    visible: true
+  });
+  light = addToy({
+    name: "hockeyLight",
+    type: "Light",
+    dimensions: {
+      x: 5,
+      y: 5,
+      z: 5
+    },
+    position: offset(LIGHT_OFFSET),
+    intensity: 5,
+    color: {
+      red: 200,
+      green: 20,
+      blue: 200
+    },
+    visible: false
+  });
+  puck = makeNewProp("puck");
+  paddle1 = makeNewProp("paddle1");
+  paddle2 = makeNewProp("paddle2");
+
+  Script.update.connect(update);
+  checkReady();
+}
+
+function deleteAllTheThings() {
+  Script.update.disconnect(update);
+  [].concat(allOurToys).forEach(removeToy)
 }
 
 function scriptEnding() {
 
-	Entities.editEntity(edge1, { locked: false });
-	Entities.editEntity(edge2, { locked: false });
-	Entities.editEntity(edge3a, { locked: false });
-	Entities.editEntity(edge3b, { locked: false });
-	Entities.editEntity(edge4a, { locked: false });
-	Entities.editEntity(edge4b, { locked: false });
-	Entities.editEntity(floor, { locked: false });
-	Entities.editEntity(table, { locked: false });
-
-
-	Entities.deleteEntity(edge1);
-	Entities.deleteEntity(edge2);
-	Entities.deleteEntity(edge3a);
-	Entities.deleteEntity(edge3b);
-	Entities.deleteEntity(edge4a);
-	Entities.deleteEntity(edge4b);
-	Entities.deleteEntity(floor);
-	Entities.deleteEntity(puck);
-	Entities.deleteEntity(paddle1);
-	Entities.deleteEntity(paddle2);
-	Entities.deleteEntity(table);
+  Overlays.deleteOverlay(spawnButton);
+  Overlays.deleteOverlay(deleteButton);
+  deleteAllTheThings();
 }
 
-Script.update.connect(update);
+Controller.mousePressEvent.connect(mousePressEvent);
 Script.scriptEnding.connect(scriptEnding);

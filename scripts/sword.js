@@ -28,7 +28,8 @@ var BUTTON_SIZE = 32;
 var stickModel = "https://hifi-public.s3.amazonaws.com/eric/models/stick.fbx";
 var swordModel = "https://hifi-public.s3.amazonaws.com/ozan/props/sword/sword.fbx";
 var whichModel = "sword";
-var attachmentOffset, MOUSE_CONTROLLER_OFFSET = {x: 0.5, y: 0.4, z: 0.0}; // A fudge when using mouse rather than hand-controller, to hit yourself less often.
+var attachmentOffset; // A fudge when using mouse rather than hand-controller, to hit yourself less often.
+var RIGHT_MOUSE_CONTROLLER_OFFSET = {x: 0.5, y: 0.4, z: 0.0}, LEFT_MOUSE_CONTROLLER_OFFSET = {x: -0.5, y: 0.4, z: 0.0}; 
 
 var toolBar = new ToolBar(0, 0, ToolBar.vertical, "highfidelity.sword.toolbar", function () {
     return {x: 100, y: 380};
@@ -166,11 +167,20 @@ function isFighting() {
     return stickID && (actionID !== nullActionID) && !isAway;
 }
 
+function initControls() {
+    print("Sword hand is " + hand);
+    if (hand === "right") {
+        controllerID = 3; // right handed
+    } else {
+        controllerID = 4; // left handed
+    }
+}
+
 function mouseMoveEvent(event) {
-    //FIXME attachmentOffset = MOUSE_CONTROLLER_OFFSET;
-    if (!isFighting()) {
+    if (controllerActive || !isFighting()) {
         return;
     }
+    attachmentOffset = (hand === 'left') ? LEFT_MOUSE_CONTROLLER_OFFSET : RIGHT_MOUSE_CONTROLLER_OFFSET;
     var windowCenterX = Window.innerWidth / 2;
     var windowCenterY = Window.innerHeight / 2;
     var mouseXCenterOffset = event.x - windowCenterX;
@@ -181,17 +191,6 @@ function mouseMoveEvent(event) {
     var stickOrientation = Quat.fromPitchYawRollDegrees(mouseYRatio * -90, mouseXRatio * -90, 0);
     positionStick(stickOrientation);
 }
-
-
-function initControls() {
-    print("Sword hand is " + hand);
-    if (hand === "right") {
-        controllerID = 3; // right handed
-    } else {
-        controllerID = 4; // left handed
-    }
-}
-
 
 function update() {
     var palmPosition = Controller.getSpatialControlPosition(controllerID);
@@ -225,7 +224,7 @@ function makeSword() {
         //compoundShapeURL: "https://hifi-public.s3.amazonaws.com/eric/models/stick.obj",
         shapeType: "box",
         dimensions: dimensions,
-        position: MyAvatar.getRightPalmPosition(), // initial position doesn't matter, as long as it's close
+        position: (hand === 'right') ? MyAvatar.getRightPalmPosition() : MyAvatar.getLeftPalmPosition(), // initial position doesn't matter, as long as it's close
         rotation: MyAvatar.orientation,
         damping: 0.1,
         collisionSoundURL: "http://public.highfidelity.io/sounds/Collisions-hitsandslaps/swordStrike1.wav",

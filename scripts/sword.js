@@ -50,16 +50,16 @@ var targetButton = toolBar.addOverlay("image", {
     imageURL: TARGET_IMAGE,
     alpha: 1
 });
-var cleanupButton = toolBar.addOverlay("image", {
-    width: BUTTON_SIZE,
-    height: BUTTON_SIZE,
-    imageURL: CLEANUP_IMAGE,
-    alpha: 1
-});
 var switchHandsButton = toolBar.addOverlay("image", {
     width: BUTTON_SIZE,
     height: BUTTON_SIZE,
     imageURL: SWITCH_HANDS_IMAGE,
+    alpha: 1
+});
+var cleanupButton = toolBar.addOverlay("image", {
+    width: BUTTON_SIZE,
+    height: BUTTON_SIZE,
+    imageURL: CLEANUP_IMAGE,
     alpha: 1
 });
 

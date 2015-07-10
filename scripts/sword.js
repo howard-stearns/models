@@ -99,8 +99,8 @@ function updateDisplay() {
             color: {red: 0, green: 255, blue: 0},
             backgroundColor: {red: 100, green: 100, blue: 100}, // Why doesn't this and the next work?
             backgroundAlpha: 0.9,
-            x: Window.innerWidth - 50,
-            y: 50
+            x: toolBar.x - 5,
+            y: toolBar.y - 30
         });
     } else {
         Overlays.editOverlay(display, {text: text});

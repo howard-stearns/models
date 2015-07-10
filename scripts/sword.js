@@ -86,30 +86,49 @@ function flash(color) {
     flasher.timer = Script.setTimeout(clearFlash, 500);
 }
 
-
 var health = 100;
-var display;
+var display2d, display3d;
+function trackAvatarWithText() {
+    Entities.editEntity(display3d, {
+        position: Vec3.sum(MyAvatar.position, {x: 0, y: 1.5, z: 0}),
+        rotation: Quat.multiply(MyAvatar.orientation, Quat.fromPitchYawRollDegrees(0, 180, 0))
+    });
+}
 function updateDisplay() {
     var text = health.toString();
-    if (!display) {
+    if (!display2d) {
         health = 100;
-        display = Overlays.addOverlay("text", {
+        display2d = Overlays.addOverlay("text", {
             text: text,
             font: { size: 20 },
             color: {red: 0, green: 255, blue: 0},
             backgroundColor: {red: 100, green: 100, blue: 100}, // Why doesn't this and the next work?
             backgroundAlpha: 0.9,
-            x: toolBar.x - 5,
-            y: toolBar.y - 30
+            x: toolBar.x - 5, // I'd like to add the score to the toolBar and have it drag with it, but toolBar doesn't support text (just buttons).
+            y: toolBar.y - 30 // So next best thing is to position it each time as if it were on top.
         });
+        display3d = Entities.addEntity({
+            name: MyAvatar.displayName + " score",
+            textColor: {red: 255, green: 255, blue: 255},
+            type: "Text",
+            text: text,
+            lineHeight: 0.14,
+            backgroundColor: {red: 64, green: 64, blue: 64},
+            dimensions: {x: 0.3, y: 0.2, z: 0.01},
+        });
+        Script.update.connect(trackAvatarWithText);
     } else {
-        Overlays.editOverlay(display, {text: text});
+        Overlays.editOverlay(display2d, {text: text});
+        Entities.editEntity(display3d, {text: text});
     }
 }
 function removeDisplay() {
-    if (display) {
-        Overlays.deleteOverlay(display);
-        display = null;
+    if (display2d) {
+        Overlays.deleteOverlay(display2d);
+        display2d = null;
+        Script.update.disconnect(trackAvatarWithText);
+        Entities.deleteEntity(display3d);
+        display3d = null;
     }
 }
 function computeEnergy(collision, entityID) {
@@ -248,8 +267,8 @@ function makeSword() {
         cleanUp();
     }
     if (originalAvatarCollisionSound === undefined) {
-        originalAvatarCollisionSound = MyAvatar.collisionSoundURL;
-        SoundCache.getSound(avatarCollisionSoundURL); // Interface does not currently "preload" this.
+        originalAvatarCollisionSound = MyAvatar.collisionSoundURL; // We won't get MyAvatar.collisionWithEntity unless there's a sound URL. (Bug.)
+        SoundCache.getSound(avatarCollisionSoundURL); // Interface does not currently "preload" this? (Bug?)
     }
     MyAvatar.collisionSoundURL = avatarCollisionSoundURL;
     Controller.mouseMoveEvent.connect(mouseMoveEvent);

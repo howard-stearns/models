@@ -125,6 +125,7 @@ function gotHit(collision) {
 }
 function scoreHit(idA, idB, collision) {
     var energy = computeEnergy(collision, idA);
+    print("Score + " + energy + " from " + JSON.stringify(idA) + " " + JSON.stringify(idB));
     health += energy;
     flash({red: 0, green: 255, blue: 0});
     updateDisplay();
@@ -155,10 +156,10 @@ function positionStick(stickOrientation) {
     });
 }
 function resetToHand() { // Maybe coordinate with positionStick?
-    if (inHand) {
+    if (inHand) { // Optimization: bail if we're already inHand.
         return;
     }
-    print('reset to hand');
+    print('Reset to hand');
     Entities.updateAction(stickID, actionID, {
         relativePosition: {x: 0.0, y: 0.0, z: -dimensions.z * 0.5},
         relativeRotation: Quat.fromVec3Degrees({x: 45.0, y: 0.0, z: 0.0})
@@ -166,12 +167,17 @@ function resetToHand() { // Maybe coordinate with positionStick?
     inHand = true;
 }
 function mouseMoveEvent(event) {
+    if (event.deviceID) { // Not a MOUSE mouse event, but a (e.g., hydra) mouse event, with x/y that is not meaningful for us.
+        resetToHand(); // Can only happen when controller is uncradled, so let's drive with that, resetting our attachement.
+        return;
+    }
     controllerActive = (Vec3.length(Controller.getSpatialControlPosition(controllerID)) > 0);
+    print("Mouse move with hand controller " + (controllerActive ? "active" : "inactive") + JSON.stringify(event));
     if (controllerActive || !isFighting()) {
+        print('Attempting attachment reset');
         resetToHand();
         return;
     }
-    //if (true) return;
     var windowCenterX = Window.innerWidth / 2;
     var windowCenterY = Window.innerHeight / 2;
     var mouseXCenterOffset = event.x - windowCenterX;

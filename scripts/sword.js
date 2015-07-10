@@ -162,7 +162,9 @@ function resetToHand() { // Maybe coordinate with positionStick?
     print('Reset to hand');
     Entities.updateAction(stickID, actionID, {
         relativePosition: {x: 0.0, y: 0.0, z: -dimensions.z * 0.5},
-        relativeRotation: Quat.fromVec3Degrees({x: 45.0, y: 0.0, z: 0.0})
+        relativeRotation: Quat.fromVec3Degrees({x: 45.0, y: 0.0, z: 0.0}),
+        hand: hand,   // It should not be necessary to repeat these two, but there seems to be a bug in that that
+        timeScale: 0.05  // they do not retain their earlier values if you don't repeat them.
     });
     inHand = true;
 }
@@ -172,7 +174,7 @@ function mouseMoveEvent(event) {
         return;
     }
     controllerActive = (Vec3.length(Controller.getSpatialControlPosition(controllerID)) > 0);
-    print("Mouse move with hand controller " + (controllerActive ? "active" : "inactive") + JSON.stringify(event));
+    //print("Mouse move with hand controller " + (controllerActive ? "active" : "inactive") + JSON.stringify(event));
     if (controllerActive || !isFighting()) {
         print('Attempting attachment reset');
         resetToHand();

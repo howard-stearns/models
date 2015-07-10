@@ -21,15 +21,13 @@ var controllerActive;
 var stickID = null;
 var actionID = nullActionID;
 var targetIDs = [];
-var dimensions = { x: 0.3, y: 0.1, z: 2.0 };
-var AWAY_ORIENTATION =  Quat.fromPitchYawRollDegrees(-90, 0, 0);
+var dimensions = { x: 0.3, y: 0.15, z: 2.0 };
 var BUTTON_SIZE = 32;
 
 var stickModel = "https://hifi-public.s3.amazonaws.com/eric/models/stick.fbx";
 var swordModel = "https://hifi-public.s3.amazonaws.com/ozan/props/sword/sword.fbx";
+var swordCollisionShape = "https://hifi-public.s3.amazonaws.com/ozan/props/sword/sword.obj";
 var whichModel = "sword";
-var attachmentOffset; // A fudge when using mouse rather than hand-controller, to hit yourself less often.
-var RIGHT_MOUSE_CONTROLLER_OFFSET = {x: 0.5, y: 0.4, z: 0.0}, LEFT_MOUSE_CONTROLLER_OFFSET = {x: -0.5, y: 0.4, z: 0.0}; 
 
 var toolBar = new ToolBar(0, 0, ToolBar.vertical, "highfidelity.sword.toolbar", function () {
     return {x: 100, y: 380};
@@ -88,7 +86,6 @@ function flash(color) {
 
 var health = 100;
 var display;
-var isAway = false;
 function updateDisplay() {
     var text = health.toString();
     if (!display) {
@@ -112,27 +109,6 @@ function removeDisplay() {
         display = null;
     }
 }
-
-function cleanUp(leaveButtons) {
-    attachmentOffset = {x: 0, y: 0, z: 0};
-    if (stickID) {
-        Entities.deleteAction(stickID, actionID);
-        Entities.deleteEntity(stickID);
-        stickID = null;
-        actionID = nullActionID;
-    }
-    targetIDs.forEach(function (id) {
-        Entities.deleteAction(id.entity, id.action);
-        Entities.deleteEntity(id.entity);
-    });
-    targetIDs = [];
-    removeDisplay();
-    isAway = false;
-    if (!leaveButtons) {
-        toolBar.cleanup();
-    }
-}
-
 function computeEnergy(collision, entityID) {
     var id = entityID || collision.idA || collision.idB;
     var entity = id && Entities.getEntityProperties(id);
@@ -142,29 +118,20 @@ function computeEnergy(collision, entityID) {
     return Math.min(Math.max(1.0, Math.round(energy)), 20);
 }
 function gotHit(collision) {
-    if (isAway) { return; }
     var energy = computeEnergy(collision);
     health -= energy;
     flash({red: 255, green: 0, blue: 0});
     updateDisplay();
 }
 function scoreHit(idA, idB, collision) {
-    if (isAway) { return; }
     var energy = computeEnergy(collision, idA);
     health += energy;
     flash({red: 0, green: 255, blue: 0});
     updateDisplay();
 }
 
-function positionStick(stickOrientation) {
-    var baseOffset = Vec3.sum(attachmentOffset, {x: 0.0, y: 0.0, z: -dimensions.z / 2});
-    var offset = Vec3.multiplyQbyV(stickOrientation, baseOffset);
-    Entities.updateAction(stickID, actionID, {relativePosition: offset,
-                                              relativeRotation: stickOrientation});
-}
-
 function isFighting() {
-    return stickID && (actionID !== nullActionID) && !isAway;
+    return stickID && (actionID !== nullActionID);
 }
 
 function initControls() {
@@ -175,12 +142,36 @@ function initControls() {
         controllerID = 4; // left handed
     }
 }
-
-function mouseMoveEvent(event) {
-    if (controllerActive || !isFighting()) {
+var inHand = false;
+function positionStick(stickOrientation) {
+    var reorient = Quat.fromPitchYawRollDegrees(0, -90, 0);
+    var baseOffset = {x: -dimensions.z * 0.8, y: 0, z: 0};
+    var offset = Vec3.multiplyQbyV(reorient, baseOffset);
+    stickOrientation = Quat.multiply(reorient, stickOrientation);
+    inHand = false;
+    Entities.updateAction(stickID, actionID, {
+        relativePosition: offset,
+        relativeRotation: stickOrientation
+    });
+}
+function resetToHand() { // Maybe coordinate with positionStick?
+    if (inHand) {
         return;
     }
-    attachmentOffset = (hand === 'left') ? LEFT_MOUSE_CONTROLLER_OFFSET : RIGHT_MOUSE_CONTROLLER_OFFSET;
+    print('reset to hand');
+    Entities.updateAction(stickID, actionID, {
+        relativePosition: {x: 0.0, y: 0.0, z: -dimensions.z * 0.5},
+        relativeRotation: Quat.fromVec3Degrees({x: 45.0, y: 0.0, z: 0.0})
+    });
+    inHand = true;
+}
+function mouseMoveEvent(event) {
+    controllerActive = (Vec3.length(Controller.getSpatialControlPosition(controllerID)) > 0);
+    if (controllerActive || !isFighting()) {
+        resetToHand();
+        return;
+    }
+    //if (true) return;
     var windowCenterX = Window.innerWidth / 2;
     var windowCenterY = Window.innerHeight / 2;
     var mouseXCenterOffset = event.x - windowCenterX;
@@ -188,41 +179,41 @@ function mouseMoveEvent(event) {
     var mouseXRatio = mouseXCenterOffset / windowCenterX;
     var mouseYRatio = mouseYCenterOffset / windowCenterY;
 
-    var stickOrientation = Quat.fromPitchYawRollDegrees(mouseYRatio * -90, mouseXRatio * -90, 0);
+    var stickOrientation = Quat.fromPitchYawRollDegrees(mouseYRatio * 90, mouseXRatio * 90, 0);
     positionStick(stickOrientation);
 }
 
-function update() {
-    var palmPosition = Controller.getSpatialControlPosition(controllerID);
-    controllerActive = (Vec3.length(palmPosition) > 0);
-    if (!controllerActive || !isFighting()) {
-        return;
+function removeSword() {
+    if (stickID) {
+        print('deleting action ' + actionID + ' and entity ' + stickID);
+        Entities.deleteAction(stickID, actionID);
+        Entities.deleteEntity(stickID);
+        stickID = null;
+        actionID = nullActionID;
+        Controller.mouseMoveEvent.disconnect(mouseMoveEvent);
+        MyAvatar.collisionWithEntity.disconnect(gotHit);
+        // removeEventhHandler happens automatically when the entity is deleted.
     }
-
-    var stickOrientation = Controller.getSpatialControlRawRotation(controllerID);
-    var adjustment = Quat.fromPitchYawRollDegrees(180, 0, 0);
-    stickOrientation = Quat.multiply(stickOrientation, adjustment);
-
-    positionStick(stickOrientation);
+    inHand = false;
+    removeDisplay();
 }
-
-function toggleAway() {
-    isAway = !isAway;
-    if (isAway) {
-        positionStick(AWAY_ORIENTATION);
-        removeDisplay();
-    } else {
-        updateDisplay();
+function cleanUp(leaveButtons) {
+    removeSword();
+    targetIDs.forEach(function (id) {
+        Entities.deleteAction(id.entity, id.action);
+        Entities.deleteEntity(id.entity);
+    });
+    targetIDs = [];
+    if (!leaveButtons) {
+        toolBar.cleanup();
     }
 }
-
 function makeSword() {
     initControls();
     stickID = Entities.addEntity({
         type: "Model",
-        modelURL: (whichModel === "sword") ? swordModel : stickModel,
-        //compoundShapeURL: "https://hifi-public.s3.amazonaws.com/eric/models/stick.obj",
-        shapeType: "box",
+        modelURL: swordModel,
+        compoundShapeURL: swordCollisionShape,
         dimensions: dimensions,
         position: (hand === 'right') ? MyAvatar.getRightPalmPosition() : MyAvatar.getLeftPalmPosition(), // initial position doesn't matter, as long as it's close
         rotation: MyAvatar.orientation,
@@ -231,13 +222,18 @@ function makeSword() {
         restitution: 0.01,
         collisionsWillMove: true
     });
-    actionID = Entities.addAction("hold", stickID, {relativePosition: {x: 0.0, y: 0.0, z: -dimensions.z / 2},
-                                                    hand: hand,
-                                                    timeScale: 0.15});
+    actionID = Entities.addAction("hold", stickID, {
+        relativePosition: {x: 0.0, y: 0.0, z: -dimensions.z * 0.5},
+        relativeRotation: Quat.fromVec3Degrees({x: 45.0, y: 0.0, z: 0.0}),
+        hand: hand,
+        timeScale: 0.05
+    });
     if (actionID === nullActionID) {
         print('*** FAILED TO MAKE SWORD ACTION ***');
         cleanUp();
     }
+    Controller.mouseMoveEvent.connect(mouseMoveEvent);
+    MyAvatar.collisionWithEntity.connect(gotHit);
     Script.addEventHandler(stickID, 'collisionWithEntity', scoreHit);
     updateDisplay();
 }
@@ -248,7 +244,7 @@ function onClick(event) {
         if (!stickID) {
             makeSword();
         } else {
-            toggleAway();
+            removeSword();
         }
         break;
     case targetButton:
@@ -272,9 +268,9 @@ function onClick(event) {
         targetIDs.push({entity: boxId, action: action});
         break;
     case switchHandsButton:
+        cleanUp('leaveButtons');
         hand = hand === "right" ? "left" : "right";
         Settings.setValue("highfidelity.sword.hand", hand);
-        cleanUp('leaveButtons');
         makeSword();
         break;
     case cleanupButton:
@@ -284,7 +280,4 @@ function onClick(event) {
 }
 
 Script.scriptEnding.connect(cleanUp);
-Controller.mouseMoveEvent.connect(mouseMoveEvent);
 Controller.mousePressEvent.connect(onClick);
-Script.update.connect(update);
-MyAvatar.collisionWithEntity.connect(gotHit);

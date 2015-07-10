@@ -27,7 +27,10 @@ var BUTTON_SIZE = 32;
 var stickModel = "https://hifi-public.s3.amazonaws.com/eric/models/stick.fbx";
 var swordModel = "https://hifi-public.s3.amazonaws.com/ozan/props/sword/sword.fbx";
 var swordCollisionShape = "https://hifi-public.s3.amazonaws.com/ozan/props/sword/sword.obj";
+var swordCollisionSoundURL = "http://public.highfidelity.io/sounds/Collisions-hitsandslaps/swordStrike1.wav";
+var avatarCollisionSoundURL = "https://s3.amazonaws.com/hifi-public/sounds/Collisions-hitsandslaps/airhockey_hit1.wav";
 var whichModel = "sword";
+var originalAvatarCollisionSound;
 
 var toolBar = new ToolBar(0, 0, ToolBar.vertical, "highfidelity.sword.toolbar", function () {
     return {x: 100, y: 380};
@@ -119,6 +122,7 @@ function computeEnergy(collision, entityID) {
 }
 function gotHit(collision) {
     var energy = computeEnergy(collision);
+    print("Got hit - " + energy + " from " + collision.idA + " " + collision.idB);
     health -= energy;
     flash({red: 255, green: 0, blue: 0});
     updateDisplay();
@@ -203,6 +207,9 @@ function removeSword() {
         // removeEventhHandler happens automatically when the entity is deleted.
     }
     inHand = false;
+    if (originalAvatarCollisionSound !== undefined) {
+        MyAvatar.collisionSoundURL = originalAvatarCollisionSound;
+    }
     removeDisplay();
 }
 function cleanUp(leaveButtons) {
@@ -226,7 +233,7 @@ function makeSword() {
         position: (hand === 'right') ? MyAvatar.getRightPalmPosition() : MyAvatar.getLeftPalmPosition(), // initial position doesn't matter, as long as it's close
         rotation: MyAvatar.orientation,
         damping: 0.1,
-        collisionSoundURL: "http://public.highfidelity.io/sounds/Collisions-hitsandslaps/swordStrike1.wav",
+        collisionSoundURL: swordCollisionSoundURL,
         restitution: 0.01,
         collisionsWillMove: true
     });
@@ -240,6 +247,11 @@ function makeSword() {
         print('*** FAILED TO MAKE SWORD ACTION ***');
         cleanUp();
     }
+    if (originalAvatarCollisionSound === undefined) {
+        originalAvatarCollisionSound = MyAvatar.collisionSoundURL;
+        SoundCache.getSound(avatarCollisionSoundURL); // Interface does not currently "preload" this.
+    }
+    MyAvatar.collisionSoundURL = avatarCollisionSoundURL;
     Controller.mouseMoveEvent.connect(mouseMoveEvent);
     MyAvatar.collisionWithEntity.connect(gotHit);
     Script.addEventHandler(stickID, 'collisionWithEntity', scoreHit);

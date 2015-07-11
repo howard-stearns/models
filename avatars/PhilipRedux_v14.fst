@@ -1,8 +1,8 @@
-name = PhilipRedux_v13
+name = PhilipRedux_v14
 type = body+head
 scale = 1
-filename = PhilipRedux_v13/PhilipRedux.fbx
-texdir = PhilipRedux_v13/textures
+filename = https://hifi-public.s3.amazonaws.com/ozan/avatars/philipRedux/PhilipRedux_v13/PhilipRedux.fbx
+texdir = https://hifi-public.s3.amazonaws.com/ozan/avatars/philipRedux/PhilipRedux_v13/textures
 joint = jointRightHand = RightHand
 joint = jointRoot = Hips
 joint = jointHead = HeadTop_End

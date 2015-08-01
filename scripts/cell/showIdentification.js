@@ -76,6 +76,7 @@
 
     this.getUserData = function() {
         this.properties = Entities.getEntityProperties(this.entityId);
+        print('getUserData ' + this.properties.userData);
         if (self.properties.userData) {
             this.userData = JSON.parse(this.properties.userData);
         } else {
@@ -83,6 +84,7 @@
         }
     }
 
+    // uncommented HRS
    this.update = function(deltaTime) {
 
        self.distance = Vec3.distance(MyAvatar.position, Entities.getEntityProperties(self.entityId).position);
@@ -154,10 +156,10 @@
         });
 		self.soundPlaying = false;
         Controller.mousePressEvent.disconnect(this.onClick);
-      //  Script.update.disconnect(this.update);
+        Script.update.disconnect(this.update); //uncomment hrs
     }
 
     Controller.mousePressEvent.connect(this.onClick);
-  //  Script.update.connect(this.update);
+    Script.update.connect(this.update); //uncomment hrs
 
 });

@@ -1,3 +1,8 @@
+// HRS:
+//   Set http://howard-stearns.github.io/models/scripts/cell/showIdentification.js as the Script URL of a cube.
+//   Drive within 2 m of the cube and see a button. Press the button and it plays a sound once. The button disappears immediately.
+//   If you play, back up and return fast enough to make the button reappear, and press it while the sound is still playing,
+//   you get two sounds overlapping.
 (function(){
     var baseURL = "http://howard-stearns.github.io/models/"; //HRS
     var self = this;
@@ -13,7 +18,7 @@
         self.getUserData();
         this.labelURL = "http://s3.amazonaws.com/hifi-public/images/billiardsReticle.png"; //HRS baseURL + "GUI/labels_" + self.userData.name + ".png?"+version;
         this.showDistance = self.userData.showDistance;
-        this.soundURL = baseURL + "sounds/piano2.wav"; //"Audio/" + self.userData.name + ".wav";
+        this.soundURL = baseURL + "sounds/piano2.wav"; //HRS "Audio/" + self.userData.name + ".wav";
         print("distance = " + self.userData.showDistance + ", sound = " + this.soundURL);
         this.soundOptions = {stereo: true, loop: false, localOnly: true, volume: 1.0};
         this.sound = SoundCache.getSound(this.soundURL);
@@ -33,7 +38,7 @@
             width: self.buttonWidth,
             height: self.buttonHeight,
             imageURL: self.buttonImageURL,
-            visible: false,
+            visible: true, //HRS false,
             alpha: 1.0
         });
 
@@ -50,7 +55,7 @@
             width: self.labelWidth,
             height: self.labelHeight,
             imageURL: self.labelURL,
-            visible: false,
+            visible: true, //HRS false,
             alpha: 1.0
         });
     }
@@ -84,23 +89,22 @@
         }
     }
 
-    // uncommented HRS
-   this.update = function(deltaTime) {
+   // this.update = function(deltaTime) {
 
-       self.distance = Vec3.distance(MyAvatar.position, Entities.getEntityProperties(self.entityId).position);
-		//print(self.distance);
-       if (!self.buttonShowing && self.distance < self.userData.showDistance) {
-           self.buttonShowing = true;
-           Overlays.editOverlay(self.button, {
-               visible: true
-           });
-       } else if (self.buttonShowing && self.distance > self.userData.showDistance) {
-           self.buttonShowing = false;
-           Overlays.editOverlay(self.button, {
-               visible: false
-           });
-       }
-   }
+   //     self.distance = Vec3.distance(MyAvatar.position, Entities.getEntityProperties(self.entityId).position);
+   //  	//print(self.distance);
+   //     if (!self.buttonShowing && self.distance < self.userData.showDistance) {
+   //         self.buttonShowing = true;
+   //         Overlays.editOverlay(self.button, {
+   //             visible: true
+   //         });
+   //     } else if (self.buttonShowing && self.distance > self.userData.showDistance) {
+   //         self.buttonShowing = false;
+   //         Overlays.editOverlay(self.button, {
+   //             visible: false
+   //         });
+   //     }
+   // }
 
     this.enterEntity = function(entityID) {
 
@@ -156,10 +160,10 @@
         });
 		self.soundPlaying = false;
         Controller.mousePressEvent.disconnect(this.onClick);
-        Script.update.disconnect(this.update); //uncomment hrs
+        //Script.update.disconnect(this.update);
     }
 
     Controller.mousePressEvent.connect(this.onClick);
-    Script.update.connect(this.update); //uncomment hrs
+    //Script.update.connect(this.update);
 
 });

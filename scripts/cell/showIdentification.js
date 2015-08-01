@@ -1,7 +1,7 @@
 (function(){
-    var baseURL = "http://howard-stearns.github.io/models/";
+    var baseURL = "http://howard-stearns.github.io/models/"; //HRS
     var self = this;
-    this.buttonImageURL = "http://s3.amazonaws.com/hifi-public/images/puck.png"; //baseURL + "GUI/GUI_audio.png?"+version;
+    this.buttonImageURL = "http://s3.amazonaws.com/hifi-public/images/puck.png"; //HRS baseURL + "GUI/GUI_audio.png?"+version;
 	this.soundPlaying=false;
     var version = 1;
     this.preload = function(entityId) {
@@ -11,7 +11,7 @@
 //        this.buttonShowing = false;
         //this.labelShowing = false;
         self.getUserData();
-        this.labelURL = "http://s3.amazonaws.com/hifi-public/images/billiardsReticle.png"; //baseURL + "GUI/labels_" + self.userData.name + ".png?"+version;
+        this.labelURL = "http://s3.amazonaws.com/hifi-public/images/billiardsReticle.png"; //HRS baseURL + "GUI/labels_" + self.userData.name + ".png?"+version;
         this.showDistance = self.userData.showDistance;
         this.soundURL = baseURL + "sounds/piano2.wav"; //"Audio/" + self.userData.name + ".wav";
         print("distance = " + self.userData.showDistance + ", sound = " + this.soundURL);
@@ -79,27 +79,27 @@
         if (self.properties.userData) {
             this.userData = JSON.parse(this.properties.userData);
         } else {
-            this.userData = {};
+            this.userData = {showDistance: 2}; // HRS {};
         }
     }
-//
-//    this.update = function(deltaTime) {
-//
-//        self.distance = Vec3.distance(MyAvatar.position, Entities.getEntityProperties(self.entityId).position);
-//		//print(self.distance);
-//        if (!self.buttonShowing && self.distance < self.userData.showDistance) {
-//            self.buttonShowing = true;
-//            Overlays.editOverlay(self.button, {
-//                visible: true
-//            });
-//        } else if (self.buttonShowing && self.distance > self.userData.showDistance) {
-//            self.buttonShowing = false;
-//            Overlays.editOverlay(self.button, {
-//                visible: false
-//            });
-//        }
-//    }
-//
+
+   this.update = function(deltaTime) {
+
+       self.distance = Vec3.distance(MyAvatar.position, Entities.getEntityProperties(self.entityId).position);
+		//print(self.distance);
+       if (!self.buttonShowing && self.distance < self.userData.showDistance) {
+           self.buttonShowing = true;
+           Overlays.editOverlay(self.button, {
+               visible: true
+           });
+       } else if (self.buttonShowing && self.distance > self.userData.showDistance) {
+           self.buttonShowing = false;
+           Overlays.editOverlay(self.button, {
+               visible: false
+           });
+       }
+   }
+
     this.enterEntity = function(entityID) {
 
 //		self.getUserData();

@@ -12,6 +12,7 @@
             stereo: true,
             loop: true,
             localOnly: false, // HRS true,
+            position: MyAvatar.position, // HRS, to go with non-local
             volume: 0.2
         };
         self.sound = SoundCache.getSound(self.soundURL);

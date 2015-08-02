@@ -22,6 +22,7 @@
         print("distance = " + self.userData.showDistance + ", sound = " + this.soundURL);
         this.soundOptions = {stereo: true, loop: false,
                              localOnly: false, // HRS true,
+                             position: MyAvatar.position, // HRS, to go with non-local
                              volume: 1.0};
         this.sound = SoundCache.getSound(this.soundURL);
     }
@@ -144,7 +145,7 @@
         if (clickedOverlay == self.button && self.soundPlaying == false) {
             print("button was clicked");
             if (self.sound.downloaded) {
-                print("play sound");
+                print("play sound " + JSON.stringify(self.sound) + JSON.stringify(self.soundOptions));
 				this.soundPlaying = true;
 				 Overlays.editOverlay(self.button, {
                      visible: true // HRS false

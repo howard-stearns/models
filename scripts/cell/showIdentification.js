@@ -1,8 +1,8 @@
 // HRS:
 //   Set http://howard-stearns.github.io/models/scripts/cell/showIdentification.js as the Script URL of a cube.
-//   Drive within 2 m of the cube and see a button. Press the button and it plays a sound once. The button disappears immediately.
-//   If you play, back up and return fast enough to make the button reappear, and press it while the sound is still playing,
-//   you get two sounds overlapping.
+//   This script has been modified to make the button appear all the time.
+//   Press the button and it plays a sound once.
+//   If you play while the sound is still playing, you get two sounds overlapping.
 (function(){
     var baseURL = "http://howard-stearns.github.io/models/"; //HRS
     var self = this;
@@ -145,7 +145,7 @@
                 print("play sound");
 				this.soundPlaying = true;
 				 Overlays.editOverlay(self.button, {
-					visible: false
+                     visible: true // HRS false
 				});
                 Audio.playSound(self.sound, self.soundOptions);
             } else {

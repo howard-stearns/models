@@ -11,7 +11,7 @@
         self.soundOptions = {
             stereo: true,
             loop: true,
-            localOnly: true,
+            localOnly: false, // HRS true,
             volume: 0.2
         };
         self.sound = SoundCache.getSound(self.soundURL);

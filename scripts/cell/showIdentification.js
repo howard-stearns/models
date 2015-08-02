@@ -20,7 +20,9 @@
         this.showDistance = self.userData.showDistance;
         this.soundURL = baseURL + "sounds/piano2.wav"; //HRS "Audio/" + self.userData.name + ".wav";
         print("distance = " + self.userData.showDistance + ", sound = " + this.soundURL);
-        this.soundOptions = {stereo: true, loop: false, localOnly: true, volume: 1.0};
+        this.soundOptions = {stereo: true, loop: false,
+                             localOnly: false, // HRS true,
+                             volume: 1.0};
         this.sound = SoundCache.getSound(this.soundURL);
     }
 

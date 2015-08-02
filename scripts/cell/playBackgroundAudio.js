@@ -51,7 +51,9 @@
             print("not downloaded");
         }
     }
-
+    this.clickReleaseOnEntity = function(entityID, mouseEvent) { // HRS
+        print('click release on ' + entityID);
+    };
 
 
     this.leaveEntity = function(entityID) {

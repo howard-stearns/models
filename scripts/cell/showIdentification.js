@@ -18,9 +18,10 @@
         self.getUserData();
         this.labelURL = "http://s3.amazonaws.com/hifi-public/images/billiardsReticle.png"; //HRS baseURL + "GUI/labels_" + self.userData.name + ".png?"+version;
         this.showDistance = self.userData.showDistance;
-        this.soundURL = baseURL + "sounds/piano2.wav"; //HRS "Audio/" + self.userData.name + ".wav";
+        this.soundURL = baseURL + "sounds/piano1.wav"; //HRS "Audio/" + self.userData.name + ".wav";
         print("distance = " + self.userData.showDistance + ", sound = " + this.soundURL);
-        this.soundOptions = {stereo: true, loop: false,
+        this.soundOptions = {stereo: false, // HRS to go with non-local. was true,
+                             loop: false,
                              localOnly: false, // HRS true,
                              position: MyAvatar.position, // HRS, to go with non-local
                              volume: 1.0};

@@ -7,9 +7,9 @@
         self.soundPlaying = false;
         self.entityId = entityId;
         self.getUserData();
-        self.soundURL = baseURL +  "sounds/piano2.wav"; //HRS "Audio/" + self.userData.name + ".wav";
+        self.soundURL = baseURL +  "sounds/piano1.wav"; //HRS "Audio/" + self.userData.name + ".wav";
         self.soundOptions = {
-            stereo: true,
+            stereo: false, //HRS to go with non-local. was true,
             loop: true,
             localOnly: false, // HRS true,
             position: MyAvatar.position, // HRS, to go with non-local

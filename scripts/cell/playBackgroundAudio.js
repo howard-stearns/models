@@ -11,7 +11,7 @@
         self.soundOptions = {
             stereo: false, //HRS to go with non-local. was true,
             loop: true,
-            localOnly: false, // HRS true,
+            localOnly: true,
             position: MyAvatar.position, // HRS, to go with non-local
             volume: 0.2
         };

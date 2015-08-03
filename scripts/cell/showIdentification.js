@@ -22,7 +22,7 @@
         print("distance = " + self.userData.showDistance + ", sound = " + this.soundURL);
         this.soundOptions = {stereo: false, // HRS to go with non-local. was true,
                              loop: false,
-                             localOnly: true,
+                             localOnly: false, // HRS true,
                              position: MyAvatar.position, // HRS, to go with non-local
                              volume: 1.0};
         this.sound = SoundCache.getSound(this.soundURL);

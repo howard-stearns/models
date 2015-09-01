@@ -1,0 +1,99 @@
+name = Albert
+type = body+head
+scale = 1
+filename = https://hifi-public.s3.amazonaws.com/models/skeletons/albert/albert.fbx
+texdir = https://s3.amazonaws.com/hifi-public/models/skeletons/albert/textures
+joint = jointRoot = Hips
+joint = jointHead = Head
+joint = jointEyeRight = eye_right2
+joint = jointLean = Spine
+joint = jointRightHand = RightHand
+joint = jointEyeLeft = eye_left
+joint = jointNeck = Neck
+joint = jointLeftHand = LeftHand
+freeJoint = LeftArm
+freeJoint = LeftForeArm
+freeJoint = RightArm
+freeJoint = RightForeArm
+jointIndex = Hips = 0
+jointIndex = eye_left = 65
+jointIndex = RightHandThumb1 = 34
+jointIndex = RightHandThumb2 = 35
+jointIndex = RightHandThumb3 = 36
+jointIndex = RightHandThumb4 = 37
+jointIndex = LeftArm = 39
+jointIndex = RightHandRing1 = 22
+jointIndex = RightHandRing2 = 23
+jointIndex = RightHandRing3 = 24
+jointIndex = RightHandPinky1 = 18
+jointIndex = RightHandRing4 = 25
+jointIndex = RightHandPinky2 = 19
+jointIndex = RightHandPinky3 = 20
+jointIndex = LeftToe_End = 10
+jointIndex = RightHandPinky4 = 21
+jointIndex = head = 81
+jointIndex = RightToeBase = 4
+jointIndex = LeftHand = 41
+jointIndex = Spine1 = 12
+jointIndex = Spine2 = 13
+jointIndex = show_left = 71
+jointIndex = LeftUpLeg = 6
+jointIndex = glasses1 = 78
+jointIndex = LeftHandIndex1 = 54
+jointIndex = LeftHandIndex2 = 55
+jointIndex = Spine = 11
+jointIndex = teeth_top = 79
+jointIndex = RightShoulder = 14
+jointIndex = LeftHandIndex3 = 56
+jointIndex = LeftHandIndex4 = 57
+jointIndex = LeftShoulder = 38
+jointIndex = eye_right1 = 64
+jointIndex = eye_right2 = 68
+jointIndex = teeth_btm = 80
+jointIndex = RightHand = 17
+jointIndex = LeftFoot = 8
+jointIndex = RightLeg = 2
+jointIndex = LeftForeArm = 40
+jointIndex = ankle_left = 72
+jointIndex = RightToe_End = 5
+jointIndex = RightHandMiddle1 = 26
+jointIndex = RightHandMiddle2 = 27
+jointIndex = RightHandMiddle3 = 28
+jointIndex = RightHandMiddle4 = 29
+jointIndex = LeftHandThumb1 = 58
+jointIndex = LeftHandThumb2 = 59
+jointIndex = LeftHandThumb3 = 60
+jointIndex = LeftHandThumb4 = 61
+jointIndex = RightFoot = 3
+jointIndex = LeftLeg = 7
+jointIndex = RightHandIndex1 = 30
+jointIndex = RightHandIndex2 = 31
+jointIndex = coat1 = 76
+jointIndex = RightHandIndex3 = 32
+jointIndex = RightHandIndex4 = 33
+jointIndex = LeftHandRing1 = 46
+jointIndex = LeftHandRing2 = 47
+jointIndex = shoe_right = 70
+jointIndex = LeftHandRing3 = 48
+jointIndex = LeftHandRing4 = 49
+jointIndex = LeftHandPinky1 = 42
+jointIndex = LeftHandMiddle1 = 50
+jointIndex = HeadTop_End = 66
+jointIndex = LeftHandPinky2 = 43
+jointIndex = LeftHandMiddle2 = 51
+jointIndex = LeftHandPinky3 = 44
+jointIndex = LeftHandPinky4 = 45
+jointIndex = LeftHandMiddle3 = 52
+jointIndex = LeftHandMiddle4 = 53
+jointIndex = LeftToeBase = 9
+jointIndex = ankle_right = 73
+jointIndex = RightUpLeg = 1
+jointIndex = RightForeArm = 16
+jointIndex = hand_left1 = 74
+jointIndex = RightArm = 15
+jointIndex = pants1 = 77
+jointIndex = hat2 = 69
+jointIndex = eye_left1 = 67
+jointIndex = hand_right1 = 75
+jointIndex = Neck = 62
+jointIndex = Head = 63

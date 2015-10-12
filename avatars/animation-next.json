@@ -16,38 +16,24 @@
                         {
                             "jointName": "RightHand",
                             "positionVar": "rightHandPosition",
-                            "rotationVar": "rightHandRotation",
-                            "typeVar": "rightHandType"
+                            "rotationVar": "rightHandRotation"
                         },
                         {
                             "jointName": "LeftHand",
                             "positionVar": "leftHandPosition",
-                            "rotationVar": "leftHandRotation",
-                            "typeVar": "leftHandType"
-                        },
-                        {
-                            "jointName": "RightFoot",
-                            "positionVar": "rightFootPosition",
-                            "rotationVar": "rightFootRotation",
-                            "typeVar": "rightFootType"
-                        },
-                        {
-                            "jointName": "LeftFoot",
-                            "positionVar": "leftFootPosition",
-                            "rotationVar": "leftFootRotation",
-                            "typeVar": "leftFootType"
+                            "rotationVar": "leftHandRotation"
                         },
                         {
                             "jointName": "Neck",
                             "positionVar": "neckPosition",
                             "rotationVar": "neckRotation",
-                            "typeVar": "neckType"
+                            "typeVar": "headAndNeckType"
                         },
                         {
                             "jointName": "Head",
                             "positionVar": "headPosition",
                             "rotationVar": "headRotation",
-                            "typeVar": "headType"
+                            "typeVar": "headAndNeckType"
                         }
                     ]
                 },

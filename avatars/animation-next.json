@@ -1,4 +1,4 @@
- {
+{
     "version": "1.0",
     "root": {
         "id": "ikOverlay",
@@ -57,8 +57,7 @@
                 "id": "manipulatorOverlay",
                 "type": "overlay",
                 "data": {
-                    "comment": "Turn lean off by zeroing alpha.",
-                    "alpha": 0.0,
+                    "alpha": 1.0,
                     "boneSet": "spineOnly"
                 },
                 "children": [

@@ -1,5 +1,6 @@
 "use strict";
-var AvatarList, MyAvatar, Script, Vec3; // Declare globals so that jslint does not complain.
+/*jslint vars: true*/
+var AvatarList, MyAvatar, Script, Vec3, Quat; // Declare globals so that jslint does not complain.
 // Prototype and testbed for two avatars shaking hands.
 
 // This current version is just the basics: as long as the script is running, it will try to average your hand position with that of the first other avatar it finds.
@@ -17,13 +18,25 @@ var theFirstAvatarIdNotYou = allAvatarIdsIncludingYours[0] || allAvatarIdsInclud
 var otherAvatar = AvatarList.getAvatar(theFirstAvatarIdNotYou);
 var otherAvatarHandJointIndex = otherAvatar.getJointIndex('RightHand');
 
-function vectorAverage(a, b) { return Vec3.multiply(0.5, Vec3.sum(a, b)); }
+// Assuming that the avatar doesn't move during the handshake:
+var myTranslation = MyAvatar.position;
+var myRotation = MyAvatar.orientation;
+var myInverse = Quat.inverse(myRotation);
+
+function vectorAverage(point1, point2) { return Vec3.multiply(0.5, Vec3.sum(point1, point2)); }
+function modelToWorld(modelPoint) { return Vec3.sum(myTranslation, Vec3.multiplyQbyV(myRotation, modelPoint)); }
+function worldToModel(worldPoint) { return Vec3.multiplyQbyV(myInverse, Vec3.subtract(worldPoint, myTranslation)); }
 
 function averageHands(animationProperties) { // We are given an object with the animation variables that we registered for.
-    var otherAvatarHandPosition = otherAvatar.getJointPosition(otherAvatarHandJointIndex),
-        yourCurrentTarget = animationProperties.rightHandPosition, // Can be falsey if our hydra is not in use
-        average = vectorAverage(yourCurrentTarget, otherAvatarHandPosition);
-    return !yourCurrentTarget ? {} : {rightHandPosition: average}; // We must return an object with the properties that we want the animation system to use.
+    var yourCurrentTarget = animationProperties.rightHandPosition; // Can be falsey if our hydra is not in use
+    if (!yourCurrentTarget) {
+        return {};
+    }
+    var yourHandPosition = modelToWorld(yourCurrentTarget); // animationProperties uses model space
+    var otherAvatarHandPosition = otherAvatar.getJointPosition(otherAvatarHandJointIndex); // word space
+    var average = vectorAverage(otherAvatarHandPosition, yourHandPosition);
+    // We must return an object with the properties that we want the animation system to use.
+    return {rightHandPosition: worldToModel(average)};
 }
 
 function clear() { MyAvatar.removeAnimationStateHandler(averageHands); } // Tell the animation system we don't need any more callbacks.

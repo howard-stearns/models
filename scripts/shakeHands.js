@@ -15,7 +15,7 @@ var jointName = 'RightHand'; // Actually, this should be computed for each avata
 var hipsName = 'Hips';
 
 var allAvatarIdsIncludingYours = AvatarList.getAvatars(); // Yours has null id
-var theFirstAvatarIdNotYou = allAvatarIdsIncludingYours[0] || allAvatarIdsIncludingYours[1];
+var theFirstAvatarIdNotYou = null; //FIXME after debugging allAvatarIdsIncludingYours[0] || allAvatarIdsIncludingYours[1];
 // A pun for debugging: If there are no other avatars, the otherAvatar is you! (That's how getAvatar("junkId") works.)
 // In that case, this script should end up averaging yourself with (previous frame of) yourself.
 var otherAvatar = AvatarList.getAvatar(theFirstAvatarIdNotYou);
@@ -28,7 +28,8 @@ var avatarToWorldRotation = MyAvatar.orientation;
 var worldToAvatarRotation = Quat.inverse(avatarToWorldRotation);
 var modelToAvatarRotation = Quat.angleAxis(180, {x: 0, y: 1, z: 0});
 var avatarToModelRotation = Quat.inverse(modelToAvatarRotation); // Flip 180 gives same result without inverse, but being explicit to track the math.
-var avatarHipsTranslation = MyAvatar.getJointTranslation(myHipsJointIndex); // should really be done on the bind pose
+var avatarHipsTranslation = {"x": 0.00003611063220887445, "y": 1.014387607574463, "z": 0.008376987650990486}; // harcoded for Kate for debugging
+//var avatarHipsTranslation = MyAvatar.getJointTranslation(myHipsJointIndex); // should really be done on the bind pose
 
 function vectorAverage(point1, point2) { return Vec3.multiply(0.5, Vec3.sum(point1, point2)); }
 function modelToWorld(modelPoint, avatarToModelTranslation) {
@@ -44,8 +45,8 @@ var initialHandPositionForDebugging = worldToModel(MyAvatar.getJointPosition(oth
 function averageHands(animationProperties) { // We are given an object with the animation variables that we registered for.
     var yourCurrentTarget = animationProperties.rightHandPosition; // Can be falsey if our hydra is not in use
     if (!yourCurrentTarget) {
+        yourCurrentTarget = initialHandPositionForDebugging; // For debugging, it can be convenient to not bail on the next line and instead set this.
         //return {};
-        yourCurrentTarget = initialHandPositionForDebugging;
     }
     var yourHandPosition = modelToWorld(yourCurrentTarget, avatarHipsTranslation); // animationProperties uses model space
     var otherAvatarHandPosition = otherAvatar.getJointPosition(otherAvatarHandJointIndex); // word space

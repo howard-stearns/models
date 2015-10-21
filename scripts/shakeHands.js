@@ -110,21 +110,22 @@ function startHandshake() {
 function endHandshake() { print('END HANDSHAKE'); MyAvatar.removeAnimationStateHandler(shakeHands); } // Tell the animation system we don't need any more callbacks.
 
 Script.scriptEnding.connect(endHandshake);
+startHandshake();
 var isOn = false;
-function checkTriggers(activate) {
-    if (activate) {
-        if (!isOn) {
-            isOn = true;
-            startHandshake();
-        }
-    } else if (isOn) {
-        isOn = false;
-        endHandshake();
-    }
-}
-if (hasHydra()) {
-    Script.update.connect(function () { checkTriggers(Controller.getActionValue(Controller.findAction("RIGHT_HAND_CLICK"))); });
-} else {
-    Controller.keyPressEvent.connect(function (event) { if (event.text === "x") { checkTriggers(true); } });
-    Controller.keyReleaseEvent.connect(function (event) { if (event.text === "x") { checkTriggers(false); } });
-}
+// function checkTriggers(activate) {
+//     if (activate) {
+//         if (!isOn) {
+//             isOn = true;
+//             startHandshake();
+//         }
+//     } else if (isOn) {
+//         isOn = false;
+//         endHandshake();
+//     }
+// }
+// if (hasHydra()) {
+//     Script.update.connect(function () { checkTriggers(Controller.getActionValue(Controller.findAction("RIGHT_HAND_CLICK"))); });
+// } else {
+//     Controller.keyPressEvent.connect(function (event) { if (event.text === "x") { checkTriggers(true); } });
+//     Controller.keyReleaseEvent.connect(function (event) { if (event.text === "x") { checkTriggers(false); } });
+// }

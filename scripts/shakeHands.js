@@ -13,7 +13,8 @@ var AvatarList, MyAvatar, Script, Vec3, Quat, print, Controller; // Declare glob
 // - https://github.com/highfidelity/hifi/pull/6097;
 // - Developer->Avatars->Enable Anim Graph on.
 // - If you want the other avatar to also move it's hand, it needs to ALSO run this script on its own Interface, with the same requirements.
-// - Caution: the current PR, above, is not entirely thread safe! (And I'm not so sure about Controller.keyPressEvent.)
+// - Caution: the current PR, above, is not entirely thread safe! (And I'm not so sure about Controller.keyPressEvent.) If it drives you nuts, you can
+//   just replace this file's last if/else with startHandshake(), and it will "shake" as long as the script is running, without thread conflicts vs event handling.
 
 function hasHydra() {
     var data = Controller.getSpatialControlPosition(0);

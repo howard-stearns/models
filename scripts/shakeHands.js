@@ -1,17 +1,20 @@
 "use strict";
 /*jslint vars: true, plusplus: true*/
 var AvatarList, MyAvatar, Script, Vec3, Quat, print, Controller; // Declare globals so that jslint does not complain.
-// Prototype and testbed for two avatars shaking hands.
 
-// This current version is just the basics: as long as the script is running, it will try to average your hand position with that of the first other avatar it finds.
-// I.e., there is no stop/start other than starting/stopping the script.
+// Prototype and testbed for two avatars shaking hands.
+//
+// As long as you press the hydra trigger (or press the 'x' key if there is no hydra off-hook), your avatar's hand will be set to the average of its
+// current position and that of the other avatar in the space with you.
+// (If there is no other avatar, it averages against yourself, which is handy for testing)
+// See FIXMEs.
+//
 // Requires:
 // - https://github.com/highfidelity/hifi/pull/6097;
 // - Developer->Avatars->Enable Anim Graph on.
-// - Your right hydra must be in use (and off-hook).
 // - If you want the other avatar to also move it's hand, it needs to ALSO run this script on its own Interface, with the same requirements.
+// - Caution: the current PR, above, is not entirely thread safe! (And I'm not so sure about Controller.keyPressEvent.)
 
-// If false, we always allow folks to grab our hand and shake it as long as script is running, without us doing anything.
 function hasHydra() {
     var data = Controller.getSpatialControlPosition(0);
     return data.x || data.y || data.z; // or hardcode a boolean
@@ -21,7 +24,7 @@ var jointName = 'RightHand'; // Actually, this
 var hipsName = 'Hips';
 var animVarName = 'rightHandPosition';
 function findJointIndex(avatar, jointName) { // return joint index for that name. 
-    // FIXME: Currently by exact name. Should look for best match among avatar.jointNames(), or use parent structure topoloogy
+    // FIXME: Currently by exact name, expected standard avatars. Should look for best match among avatar.jointNames(), or use parent structure topoloogy.
     return avatar.getJointIndex(jointName);
 }
 function findOtherAvatar() {
@@ -60,14 +63,15 @@ function debugPrint(object) { if (debugPrintCountdown > 0) { print(JSON.stringif
 
 
 var otherAvatar, otherAvatarHandJointIndex; // We don't need to update these during the shake.
-var myAvatarHandJointIndex; // In case someone is shaking our hand without us having a controller.
+var myAvatarHandJointIndex, fallbackPosition; // In case someone is shaking our hand without us having a controller.
 
 function shakeHands(animationProperties) { // We are given an object with the animation variables that we registered for.
 
     // updateMyCoordinateSystem(); // For debugging, it may be convenient to allow the avatar to move aroun
 
     var yourCurrentTarget = animationProperties[animVarName] ||                            // model space
-        worldToModel(MyAvatar.getJointPosition(myAvatarHandJointIndex)); // If no controller, do let our hand be shaken.
+        fallbackPosition; // If no controller, do let our hand be shaken.
+        //worldToModel(MyAvatar.getJointPosition(myAvatarHandJointIndex)); // This ought to work just as well as the line above, but it doesn't!!
     var yourHandPosition = modelToWorld(yourCurrentTarget);                                // world space
     var otherAvatarHandPosition = otherAvatar.getJointPosition(otherAvatarHandJointIndex); // word space (just us again if no other avatar)
     var average = vectorAverage(otherAvatarHandPosition, yourHandPosition);                // world space
@@ -80,43 +84,46 @@ function shakeHands(animationProperties) { // We are given an object with the an
 }
 
 function startHandshake() {
+    print('START HANDSHAKE');
 
     // Grab other avatar info:
     otherAvatar = findOtherAvatar();
     otherAvatarHandJointIndex = findJointIndex(otherAvatar, jointName);
 
     // Grab our info, assuming that the avatar doesn't move during the handshake:
-    myAvatarHandJointIndex = findJointIndex(MyAvatar, jointName); // only used as a no-hydra fallback
     myHipsJointIndex = findJointIndex(MyAvatar, hipsName);
     updateMyCoordinateSystem();
+    myAvatarHandJointIndex = findJointIndex(MyAvatar, jointName); // only used as a no-hydra fallback
+    fallbackPosition = worldToModel(MyAvatar.getJointPosition(myAvatarHandJointIndex));
 
     // Debug stuff:
     print("other avatar name:", otherAvatar.displayName,
-          "other avatar hand index:", otherAvatarHandJointIndex,
           "other position:", JSON.stringify(otherAvatar.position),
+          "other avatar hand index:", otherAvatarHandJointIndex,
           "my hand index:", myAvatarHandJointIndex);
 
     // Register averageHands with my avatar's animation system.
     MyAvatar.addAnimationStateHandler(shakeHands, [animVarName]); // The second argument is currently ignored.
 }
 
-function endHandshake() { MyAvatar.removeAnimationStateHandler(shakeHands); } // Tell the animation system we don't need any more callbacks.
+function endHandshake() { print('END HANDSHAKE'); MyAvatar.removeAnimationStateHandler(shakeHands); } // Tell the animation system we don't need any more callbacks.
 
 Script.scriptEnding.connect(endHandshake);
-
-if (hasHydra()) {
-    var isOn = false;
-    Script.update.connect(function () {
-        if (Controller.getActionValue(Controller.findAction("RIGHT_HAND_CLICK"))) {
-            if (!isOn) {
-                isOn = true;
-                startHandshake();
-            }
-        } else if (isOn) {
-            isOn = false;
-            endHandshake();
+var isOn = false;
+function checkTriggers(activate) {
+    if (activate) {
+        if (!isOn) {
+            isOn = true;
+            startHandshake();
         }
-    });
+    } else if (isOn) {
+        isOn = false;
+        endHandshake();
+    }
+}
+if (hasHydra()) {
+    Script.update.connect(function () { checkTriggers(Controller.getActionValue(Controller.findAction("RIGHT_HAND_CLICK"))); });
 } else {
-    startHandshake();
+    Controller.keyPressEvent.connect(function (event) { if (event.text === "x") { checkTriggers(true); } });
+    Controller.keyReleaseEvent.connect(function (event) { if (event.text === "x") { checkTriggers(false); } });
 }

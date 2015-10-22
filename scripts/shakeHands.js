@@ -5,7 +5,7 @@ var AvatarList, MyAvatar, Script, Vec3, Quat, print, Controller; // Declare glob
 // Prototype and testbed for two avatars shaking hands.
 //
 // As long as you press the hydra trigger (or press the 'x' key if there is no hydra off-hook), your avatar's hand will be set to the average of its
-// current position and that of the other avatar in the space with you.
+// current position and that of the other avatar in the space with you, weighted by 'yourMix'.
 // (If there is no other avatar, it averages against yourself, which is handy for testing)
 // See FIXMEs.
 //
@@ -13,15 +13,14 @@ var AvatarList, MyAvatar, Script, Vec3, Quat, print, Controller; // Declare glob
 // - https://github.com/highfidelity/hifi/pull/6097;
 // - Developer->Avatars->Enable Anim Graph on.
 // - If you want the other avatar to also move it's hand, it needs to ALSO run this script on its own Interface, with the same requirements.
-// - Caution: the current PR, above, is not entirely thread safe! (And I'm not so sure about Controller.keyPressEvent.) If it drives you nuts, you can
-//   just replace this file's last if/else with startHandshake(), and it will "shake" as long as the script is running, without thread conflicts vs event handling.
 
-function hasHydra() {
+function hasHydra() { // FIXME? This is currently run at script start, at the bottom of the file. If the hydra is cradled then, it assumes no hydra. Not ideal.
     var data = Controller.getSpatialControlPosition(0);
     return data.x || data.y || data.z; // or hardcode a boolean
 }
 
-var jointName = 'RightHand'; // Actually, this 
+var yourMix = 0.1;  // How much of your own motion data to include (out of 1.0).
+var jointName = 'RightHand';
 var hipsName = 'Hips';
 var animVarName = 'rightHandPosition';
 function findJointIndex(avatar, jointName) { // return joint index for that name. 
@@ -48,7 +47,6 @@ function updateMyCoordinateSystem() {
 }
 
 // Just math. 
-function vectorAverage(point1, point2) { return Vec3.multiply(0.5, Vec3.sum(point1, point2)); }
 function modelToWorld(modelPoint) {
     var avatarPoint = Vec3.subtract(Vec3.multiplyQbyV(modelToAvatarRotation, modelPoint), avatarToModelTranslation);
     return Vec3.sum(Vec3.multiplyQbyV(avatarToWorldRotation, avatarPoint), avatarToWorldTranslation);
@@ -66,16 +64,16 @@ function debugPrint(object) { if (debugPrintCountdown > 0) { print(JSON.stringif
 var otherAvatar, otherAvatarHandJointIndex; // We don't need to update these during the shake.
 var myAvatarHandJointIndex, fallbackPosition; // In case someone is shaking our hand without us having a controller.
 
-function shakeHands(animationProperties) { // We are given an object with the animation variables that we registered for.
+function shakeHands(animationProperties) { // We are given an object with the animation variables that we registered for (using addAnimationStateHandler, below). 
 
-    // updateMyCoordinateSystem(); // For debugging, it may be convenient to allow the avatar to move aroun
+    // updateMyCoordinateSystem(); // For debugging, it may be convenient to allow the avatar to move around
 
     var yourCurrentTarget = animationProperties[animVarName] ||                            // model space
         fallbackPosition; // If no controller, do let our hand be shaken.
         //worldToModel(MyAvatar.getJointPosition(myAvatarHandJointIndex)); // This ought to work just as well as the line above, but it doesn't!!
     var yourHandPosition = modelToWorld(yourCurrentTarget);                                // world space
     var otherAvatarHandPosition = otherAvatar.getJointPosition(otherAvatarHandJointIndex); // word space (just us again if no other avatar)
-    var average = vectorAverage(otherAvatarHandPosition, yourHandPosition);                // world space
+    var average = Vec3.mix(otherAvatarHandPosition, yourHandPosition, yourMix);            // world space
     var averageInModelSpace = worldToModel(average);                                       // model space
     // FIXME?: We might want a small offset towards model +x to account for the palm thickness.
     debugPrint({hand: yourCurrentTarget, hips: avatarToModelTranslation, world: yourHandPosition, other: otherAvatarHandPosition, average: average, target: averageInModelSpace});
@@ -107,25 +105,27 @@ function startHandshake() {
     MyAvatar.addAnimationStateHandler(shakeHands, [animVarName]); // The second argument is currently ignored.
 }
 
-function endHandshake() { print('END HANDSHAKE'); MyAvatar.removeAnimationStateHandler(shakeHands); } // Tell the animation system we don't need any more callbacks.
+function endHandshake() {  // Tell the animation system we don't need any more callbacks.
+    print('END HANDSHAKE');
+    MyAvatar.removeAnimationStateHandler(shakeHands);
+}
 
 Script.scriptEnding.connect(endHandshake);
-startHandshake();
 var isOn = false;
-// function checkTriggers(activate) {
-//     if (activate) {
-//         if (!isOn) {
-//             isOn = true;
-//             startHandshake();
-//         }
-//     } else if (isOn) {
-//         isOn = false;
-//         endHandshake();
-//     }
-// }
-// if (hasHydra()) {
-//     Script.update.connect(function () { checkTriggers(Controller.getActionValue(Controller.findAction("RIGHT_HAND_CLICK"))); });
-// } else {
-//     Controller.keyPressEvent.connect(function (event) { if (event.text === "x") { checkTriggers(true); } });
-//     Controller.keyReleaseEvent.connect(function (event) { if (event.text === "x") { checkTriggers(false); } });
-// }
+function checkTriggers(activate) { // start or end handshake based on whether activate is true, and on current handshake state.
+    if (activate) {
+        if (!isOn) {
+            isOn = true;
+            startHandshake();
+        }
+    } else if (isOn) {
+        isOn = false;
+        endHandshake();
+    }
+}
+if (hasHydra()) {
+    Script.update.connect(function () { checkTriggers(Controller.getActionValue(Controller.findAction("RIGHT_HAND_CLICK"))); });
+} else {
+    Controller.keyPressEvent.connect(function (event) { if (event.text === "x") { checkTriggers(true); } });
+    Controller.keyReleaseEvent.connect(function (event) { if (event.text === "x") { checkTriggers(false); } });
+}

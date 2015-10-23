@@ -19,7 +19,8 @@ function hasHydra() { // FIXME? This is currently run at script start, at the bo
     return data.x || data.y || data.z; // or hardcode a boolean
 }
 
-var yourMix = 0.1;  // How much of your own motion data to include (out of 1.0).
+var triggerDeadband = 0.1;
+var yourMix = 0.25;  // How much of your own motion data to include, compared with the other avatar's result (out of 1.0).
 var jointName = 'RightHand';
 var hipsName = 'Hips';
 var animVarName = 'rightHandPosition';
@@ -28,7 +29,7 @@ function findJointIndex(avatar, jointName) { // return joint index for that name
     return avatar.getJointIndex(jointName);
 }
 function findOtherAvatar() {
-    var allAvatarIdsIncludingYours = AvatarList.getAvatars(); // Yours has null id
+    var allAvatarIdsIncludingYours = AvatarList.getAvatarIdentifiers(); // Yours has null id
     var theFirstAvatarIdNotYou = allAvatarIdsIncludingYours[0] || allAvatarIdsIncludingYours[1]; // FIXME: grab the closest one.
     // A pun for debugging: If there are no other avatars, the otherAvatar is you! (That's how getAvatar("junkId") works.)
     // In that case, this script should end up averaging yourself with (previous frame of) yourself, which is useful for debugging.
@@ -124,7 +125,7 @@ function checkTriggers(activate) { // start or end handshake based on whether ac
     }
 }
 if (hasHydra()) {
-    Script.update.connect(function () { checkTriggers(Controller.getActionValue(Controller.findAction("RIGHT_HAND_CLICK"))); });
+    Script.update.connect(function () { checkTriggers(Controller.getActionValue(Controller.findAction("RIGHT_HAND_CLICK")) > triggerDeadband); });
 } else {
     Controller.keyPressEvent.connect(function (event) { if (event.text === "x") { checkTriggers(true); } });
     Controller.keyReleaseEvent.connect(function (event) { if (event.text === "x") { checkTriggers(false); } });

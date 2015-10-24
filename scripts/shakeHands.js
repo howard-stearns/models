@@ -1,6 +1,7 @@
 "use strict";
 /*jslint vars: true, plusplus: true*/
 var AvatarList, MyAvatar, Script, Vec3, Quat, print, Controller; // Declare globals so that jslint does not complain.
+var updateTriggers; // forward reference
 
 // Prototype and testbed for two avatars shaking hands.
 //
@@ -14,13 +15,9 @@ var AvatarList, MyAvatar, Script, Vec3, Quat, print, Controller; // Declare glob
 // - Developer->Avatars->Enable Anim Graph on.
 // - If you want the other avatar to also move it's hand, it needs to ALSO run this script on its own Interface, with the same requirements.
 
-function hasHydra() { // FIXME? This is currently run at script start, at the bottom of the file. If the hydra is cradled then, it assumes no hydra. Not ideal.
-    var data = Controller.getSpatialControlPosition(0);
-    return data.x || data.y || data.z; // or hardcode a boolean
-}
-
 var triggerDeadband = 0.1;
 var yourMix = 0.25;  // How much of your own motion data to include, compared with the other avatar's result (out of 1.0).
+var maxAvatarDistance = 1.25; // meters.  Best results within 1m, maybe 0.8. 1.25 is about max. 
 var jointName = 'RightHand';
 var hipsName = 'Hips';
 var animVarName = 'rightHandPosition';
@@ -29,11 +26,18 @@ function findJointIndex(avatar, jointName) { // return joint index for that name
     return avatar.getJointIndex(jointName);
 }
 function findOtherAvatar() {
-    var allAvatarIdsIncludingYours = AvatarList.getAvatarIdentifiers(); // Yours has null id
-    var theFirstAvatarIdNotYou = allAvatarIdsIncludingYours[0] || allAvatarIdsIncludingYours[1]; // FIXME: grab the closest one.
-    // A pun for debugging: If there are no other avatars, the otherAvatar is you! (That's how getAvatar("junkId") works.)
+    // A pun for debugging: If there are no other avatars in range, the otherAvatar is you!
     // In that case, this script should end up averaging yourself with (previous frame of) yourself, which is useful for debugging.
-    return AvatarList.getAvatar(theFirstAvatarIdNotYou);
+    var closestDistance = maxAvatarDistance, closestAvatar = MyAvatar;
+    AvatarList.getAvatarIdentifiers().forEach(function (identifier) {
+        if (!identifier) { return; }
+        var avatar = AvatarList.getAvatar(identifier), distance = Vec3.distance(avatar.position, MyAvatar.position);
+        if (distance && (distance < closestDistance)) {
+            closestDistance = distance;
+            closestAvatar = avatar;
+        }
+    });
+    return closestAvatar;
 }
 
 // For transforming between world space and our avatar's model space. 
@@ -58,7 +62,7 @@ function worldToModel(worldPoint) {
 }
 
 // Debugging stuff.
-var debugPrintCountdown = 2;
+var debugPrintCountdown;
 function debugPrint(object) { if (debugPrintCountdown > 0) { print(JSON.stringify(object)); debugPrintCountdown--; } }
 
 
@@ -73,7 +77,13 @@ function shakeHands(animationProperties) { // We are given an object with the an
         fallbackPosition; // If no controller, do let our hand be shaken.
         //worldToModel(MyAvatar.getJointPosition(myAvatarHandJointIndex)); // This ought to work just as well as the line above, but it doesn't!!
     var yourHandPosition = modelToWorld(yourCurrentTarget);                                // world space
-    var otherAvatarHandPosition = otherAvatar.getJointPosition(otherAvatarHandJointIndex); // word space (just us again if no other avatar)
+    var otherAvatarHandPosition;
+    try {
+        otherAvatarHandPosition = otherAvatar.getJointPosition(otherAvatarHandJointIndex); // word space (just us again if no other avatar)
+    } catch (e) {
+        print("Other avatar has left during the handshake.");
+        updateTriggers(false);
+    }
     var average = Vec3.mix(otherAvatarHandPosition, yourHandPosition, yourMix);            // world space
     var averageInModelSpace = worldToModel(average);                                       // model space
     // FIXME?: We might want a small offset towards model +x to account for the palm thickness.
@@ -85,6 +95,7 @@ function shakeHands(animationProperties) { // We are given an object with the an
 
 function startHandshake() {
     print('START HANDSHAKE');
+    debugPrintCountdown = 2;
 
     // Grab other avatar info:
     otherAvatar = findOtherAvatar();
@@ -113,7 +124,7 @@ function endHandshake() {  // Tell the animation system we don't need any more c
 
 Script.scriptEnding.connect(endHandshake);
 var isOn = false;
-function checkTriggers(activate) { // start or end handshake based on whether activate is true, and on current handshake state.
+function updateTriggers(activate) { // start or end handshake based on whether activate is true, and on current handshake state.
     if (activate) {
         if (!isOn) {
             isOn = true;
@@ -124,9 +135,11 @@ function checkTriggers(activate) { // start or end handshake based on whether ac
         endHandshake();
     }
 }
-if (hasHydra()) {
-    Script.update.connect(function () { checkTriggers(Controller.getActionValue(Controller.findAction("RIGHT_HAND_CLICK")) > triggerDeadband); });
-} else {
-    Controller.keyPressEvent.connect(function (event) { if (event.text === "x") { checkTriggers(true); } });
-    Controller.keyReleaseEvent.connect(function (event) { if (event.text === "x") { checkTriggers(false); } });
+function pollHandController() { // It would be better to have an event to connect to!
+    var data = Controller.getSpatialControlPosition(0);
+    if (!data.x && !data.y && !data.z) { return; } // It would be nice to have a better way to detect whether hand controllers are in use!
+    updateTriggers(Controller.getActionValue(Controller.findAction("RIGHT_HAND_CLICK")) > triggerDeadband);
 }
+Script.update.connect(pollHandController);
+Controller.keyPressEvent.connect(function (event) { if (event.text === "x") { updateTriggers(true); } });
+Controller.keyReleaseEvent.connect(function (event) { if (event.text === "x") { updateTriggers(false); } });

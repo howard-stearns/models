@@ -93,6 +93,7 @@ function shakeHands(animationProperties) { // We are given an object with the an
     return result;
 }
 
+var handlerId;
 function startHandshake() {
     print('START HANDSHAKE');
     debugPrintCountdown = 2;
@@ -114,12 +115,12 @@ function startHandshake() {
           "my hand index:", myAvatarHandJointIndex);
 
     // Register averageHands with my avatar's animation system.
-    MyAvatar.addAnimationStateHandler(shakeHands, [animVarName]); // The second argument is currently ignored.
+    handlerId = MyAvatar.addAnimationStateHandler(shakeHands, [animVarName]); // The second argument is currently ignored.
 }
 
 function endHandshake() {  // Tell the animation system we don't need any more callbacks.
     print('END HANDSHAKE');
-    MyAvatar.removeAnimationStateHandler(shakeHands);
+    MyAvatar.removeAnimationStateHandler(handlerId);
 }
 
 Script.scriptEnding.connect(endHandshake);

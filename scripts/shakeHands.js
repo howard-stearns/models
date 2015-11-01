@@ -11,7 +11,6 @@ var updateTriggers; // forward reference
 // See FIXMEs.
 //
 // Requires:
-// - https://github.com/highfidelity/hifi/pull/6097;
 // - Developer->Avatars->Enable Anim Graph on.
 // - If you want the other avatar to also move it's hand, it needs to ALSO run this script on its own Interface, with the same requirements.
 
@@ -124,23 +123,26 @@ function endHandshake() {  // Tell the animation system we don't need any more c
 }
 
 Script.scriptEnding.connect(endHandshake);
-var isOn = false;
-function updateTriggers(activate) { // start or end handshake based on whether activate is true, and on current handshake state.
+var isOn = false, isFromKeyboard = false;
+function updateTriggers(activate, fromKeyboard) { // start or end handshake based on whether activate is true, and on current handshake state.
     if (activate) {
         if (!isOn) {
             isOn = true;
+            isFromKeyboard = fromKeyboard;
             startHandshake();
         }
     } else if (isOn) {
         isOn = false;
+        isFromKeyboard = false;
         endHandshake();
     }
 }
 function pollHandController() { // It would be better to have an event to connect to!
-    var data = Controller.getSpatialControlPosition(0);
-    if (!data.x && !data.y && !data.z) { return; } // It would be nice to have a better way to detect whether hand controllers are in use!
+    //var data = Controller.getSpatialControlPosition(0);
+    //if (!data.x && !data.y && !data.z) { return; } // It would be nice to have a better way to detect whether hand controllers are in use!
+    if (isFromKeyboard) { return; } // Don't cancel if holding down the x key (e.g., because of no controller).
     updateTriggers(Controller.getActionValue(Controller.findAction("RIGHT_HAND_CLICK")) > triggerDeadband);
 }
 Script.update.connect(pollHandController);
-Controller.keyPressEvent.connect(function (event) { if (event.text === "x") { updateTriggers(true); } });
-Controller.keyReleaseEvent.connect(function (event) { if (event.text === "x") { updateTriggers(false); } });
+Controller.keyPressEvent.connect(function (event) { if ((event.text === "x") && !event.isAutoRepeat) { updateTriggers(true, true); } });
+Controller.keyReleaseEvent.connect(function (event) { if ((event.text === "x") && !event.isAutoRepeat) { updateTriggers(false, true); } });

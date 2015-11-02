@@ -577,8 +577,7 @@
                                                     "startFrame": 0.0,
                                                     "endFrame": 37.0,
                                                     "timeScale": 1.0,
-                                                    "loopFlag": true,
-                                                    "timeScaleVar": "walkTimeScale"
+                                                    "loopFlag": true
                                                 },
                                                 "children": []
                                             },

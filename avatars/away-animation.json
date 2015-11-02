@@ -395,13 +395,7 @@
                                                     "interpTarget": 6,
                                                     "interpDuration": 6,
                                                     "transitions": [
-                                                        { "var": "isNotMoving", "state": "idle" },
-                                                        { "var": "isMovingForward", "state": "walkFwd" },
-                                                        { "var": "isMovingBackward", "state": "walkBwd" },
-                                                        { "var": "isMovingRight", "state": "strafeRight" },
-                                                        { "var": "isMovingLeft", "state": "strafeLeft" },
-                                                        { "var": "isTurningRight", "state": "turnRight" },
-                                                        { "var": "isTurningLeft", "state": "turnLeft" }
+                                                        { "var": "isNotAway", "state": "idle" }
                                                     ]
                                                 },
                                                 {

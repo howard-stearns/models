@@ -18,9 +18,11 @@ function update(deltaTime) {
 }
 print('start stress');
 print('Agent', JSON.stringify(Agent));
-print('Avatar', JSON.stringify(Avatar));
-/*print('Script', JSON.stringify(Script));
-Script.setTimeout(function () {
+//print('Avatar', JSON.stringify(Avatar));
+print('Script', JSON.stringify(Script));
+print('before comment');
+/*Script.setTimeout(function () {
     print('starting update');
     Script.update.connect(update);
 }, 10000);*/
+print('end of script file');

@@ -16,9 +16,7 @@ function update(deltaTime) {
         return;
     }
     if (++count > (60 * 5)) {
-        print('tick', runtime, Avatar.displayName);
-        print(Avatar.position);
-        print(JSON.stringify(Avatar));
+        print('tick', runtime, Avatar.displayName, Avatar.sessionUUID, JSON.stringify(Avatar.position));
         count = 0;
     }
 }

@@ -19,8 +19,8 @@ function update(deltaTime) {
 print('start stress');
 print('Agent', JSON.stringify(Agent));
 print('Script', JSON.stringify(Script), Script.setTimeout);
-print('before avatar');
-print('Avatar', JSON.stringify(Avatar));
+//print('before avatar');
+//print('Avatar', JSON.stringify(Avatar)); // FAILS
 print('before comment');
 /*Script.setTimeout(function () {
     print('starting update');

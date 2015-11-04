@@ -21,10 +21,10 @@ print('Agent', JSON.stringify(Agent));
 print('Script', JSON.stringify(Script), Script.setTimeout);
 //print('before avatar');
 //print('Avatar', JSON.stringify(Avatar)); // FAILS
-print('before comment');
-/*Script.setTimeout(function () {
+print('before timer');
+Script.setTimeout(function () {
     print('starting update');
     Script.update.connect(update);
-    }, 10000);*/
+    }, 10000);
 Script.update.connect(update);
 print('end of script file');

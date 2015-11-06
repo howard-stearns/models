@@ -24,5 +24,6 @@ Script.setTimeout(function () { // until we can trust the update ready test for 
     Avatar.scale = 1;
     Avatar.position = {x: 500, y: 502, z: 500};
     Script.update.connect(update);
+    Script.update.connect(function (delta) { print('FIXME secondary test', delta); });
 }, 10000); 
 print('end of script file');

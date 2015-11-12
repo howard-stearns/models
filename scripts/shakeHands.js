@@ -114,7 +114,7 @@ function startHandshake() {
           "my hand index:", myAvatarHandJointIndex);
 
     // Register averageHands with my avatar's animation system.
-    handlerId = MyAvatar.addAnimationStateHandler(shakeHands, [animVarName]); // The second argument is currently ignored.
+    handlerId = MyAvatar.addAnimationStateHandler(shakeHands, [animVarName]);
 }
 
 function endHandshake() {  // Tell the animation system we don't need any more callbacks.

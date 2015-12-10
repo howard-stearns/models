@@ -1,6 +1,6 @@
 "use strict";
 /*jslint vars: true, plusplus: true*/
-/*global Agent, Avatar, Script, Entities, Vec3, Quat, print*/
+/*global Agent, Avatar, Script, Entities, Vec3, Quat, SoundCache, Audio, print*/
 //
 //  animatedAvatar.js
 //  examples/acScripts
@@ -18,6 +18,7 @@ var origin = {x: 500, y: 500, z: 500};
 var spread = 20; // meters
 var turnSpread = 90; // How many degrees should turn from front range over.
 var animationData = {url: "https://hifi-public.s3.amazonaws.com/ozan/anim/standard_anims/walk_fwd.fbx", lastFrame: 35};
+var soundUrl = "http://howard-stearns.github.io/models/sounds/piano1.wav";
 var models = [ // Commented-out avatars do not animate properly on AC's. Presumably because ScriptableAvatar doesn't use model pre-rotations.
     "https://hifi-public.s3.amazonaws.com/ozan/avatars/hifi_team/alan/alan.fst",
     "https://hifi-public.s3.amazonaws.com/ozan/avatars/hifi_team/andrew/andrew.fst",
@@ -67,6 +68,7 @@ Avatar.displayName = Avatar.skeletonModelURL.match(/\/(\w*).fst/)[1];  // grab t
 Avatar.displayName = nameMap[Avatar.displayName] || Avatar.displayName;
 var millisecondsToWaitBeforeStarting = 10 * 1000; // To give the various servers a chance to start.
 
+
 Agent.isAvatar = true;
 function coord() { return (Math.random() * spread) - (spread / 2); }  // randomly distribute a coordinate zero += spread/2.
 Script.setTimeout(function () {
@@ -74,4 +76,15 @@ Script.setTimeout(function () {
     Avatar.orientation = Quat.fromPitchYawRollDegrees(0, turnSpread * (Math.random() - 0.5), 0);
     print("Starting at", JSON.stringify(Avatar.position));
     Avatar.startAnimation(animationData.url, animationData.fps || 30, 1, true, false, animationData.firstFrame || 0, animationData.lastFrame);
+
+    if (soundUrl) {
+        var piano1 = SoundCache.getSound(soundUrl);
+        Script.setInterval(function () {
+            Agent.playAvatarSound(piano1);
+            //var imono = {localOnly: false, stereo: false, volume: 1, position: Avatar.position, loop: true};
+            //Audio.playSound(piano1, imono);
+        }, 5000);
+        print("Loading " + soundUrl/* + ' at ' + JSON.stringify(imono)*/);
+    }
+
 }, millisecondsToWaitBeforeStarting);

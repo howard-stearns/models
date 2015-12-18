@@ -14,7 +14,7 @@
 // An assignment client script that animates one avatar at random location within 'spread' meters of 'origin'.
 // In Domain Server Settings, go to scripts and give the url of this script. Press '+', and then 'Save and restart'.
 
-var origin = {x: 552, y: 495, z: 466};
+var origin = {x: 547, y: 495, z: 488};
 var spread = 55; // meters
 var turnSpread = 90; // How many degrees should turn from front range over.
 var animationData = {url: "https://hifi-public.s3.amazonaws.com/ozan/anim/standard_anims/walk_fwd.fbx", lastFrame: 35};

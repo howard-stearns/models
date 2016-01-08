@@ -25,7 +25,7 @@ var LIFETIME = 30;
 var TYPES_TO_USE = [ // Entities will be populated from this list set by the script writer for different tests.
     'Box',
     'Sphere',
-    "https://hifi-public.s3.amazonaws.com/models/props/LowPolyIsland/CypressTreeGroup.fbx",
+    "https://hifi-content.s3.amazonaws.com/ozan/dev/sets/lowpoly_island/CypressTreeGroup.fbx",
     "http://s3.amazonaws.com/hifi-public/marketplace/hificontent/Games/blocks/block.fbx",
 ];
 var Y_OFFSET = 500;
@@ -40,7 +40,7 @@ var y = 0;
 var z = 0;
 var totalCreated = 0;
 var startTime = new Date();
-print("Creating " + (ROWS_X * ROWS_Y * ROWS_Z) + " entities starting at " + start);
+print("Creating " + (ROWS_X * ROWS_Y * ROWS_Z) + " entities starting at " + startTime);
 
 Script.setInterval(function () {
     if (!Entities.serversExist() || !Entities.canRez()) {

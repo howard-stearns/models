@@ -4,7 +4,7 @@
     var accumulated = 0, oldColor, entityID;
     function update(delta) {
 	accumulated += delta;
-	if (accumulated > 1.7) {
+	if (accumulated > 0.5) {
 	    var newColor = {red: oldColor.green, green: oldColor.blue, blue: oldColor.red};
 	    oldColor = newColor;
 	    Entities.editEntity(entityID, {color: newColor});

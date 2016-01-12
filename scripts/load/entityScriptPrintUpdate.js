@@ -3,7 +3,7 @@
 (function() {
     var accumulated = 0;
     function update(delta) {
-	acummulated += delta;
+	accumulated += delta;
 	if (accumulated > 5) {
 	    print('hi');
 	    accumulated = 0;

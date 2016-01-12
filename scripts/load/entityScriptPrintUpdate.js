@@ -7,4 +7,8 @@
     this.preload = function (entityID) { 
 	Script.update.connect(update);
     };
+    this.unload = function () {
+        print('** unload');
+        Script.update.disconnect(update);
+    };
 })

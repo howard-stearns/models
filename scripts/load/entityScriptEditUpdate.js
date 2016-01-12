@@ -12,7 +12,7 @@
 	}
     }
     this.preload = function (givenEntityID) {
-	entityId = givenEntityId;
+	entityId = givenEntityID;
 	oldColor = Entities.getEntityProperties(entityID).color;
 	Script.update.connect(update);
     };

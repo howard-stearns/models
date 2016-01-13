@@ -33,11 +33,13 @@
     this.preload = function (givenEntityID) {
         entityID = givenEntityID;
         var props = Entities.getEntityProperties(entityID);
+	var movingTime = JSON.parse(props.userData);
         oldColor = props.color;
         dimensions = Vec3.multiply(scale, props.dimensions);
         Script.update.connect(update);
         Script.setTimeout(move, 1000);
-        //print("Initial dimensions = " + JSON.stringify(dimensions));
+	Script.setTimeout(function () { shutdown = true; }, movingTime);
+        print("Initial dimensions = " + JSON.stringify(dimensions) + " moving time = " + movingTime);
     };
     this.unload = function () {
         shutdown = true;

@@ -25,9 +25,9 @@
     function move() {
         var newData = {velocity: Vec3.sum({x:0, y: 1, z: 0}, randomVector()), angularVelocity: Vec3.multiply(Math.PI, randomVector())};
         var nextChange = Math.ceil(Math.random() * 2000);
-        print('editing:' + JSON.stringify(newData));
+        //print('editing:' + JSON.stringify(newData));
         Entities.editEntity(entityID, newData);
-        print('edited. setting timeout:' + nextChange);
+        //print('edited. setting timeout:' + nextChange);
         if (!shutdown) { Script.setTimeout(move, nextChange); }
     }
     this.preload = function (givenEntityID) {
@@ -37,7 +37,7 @@
         dimensions = Vec3.multiply(scale, props.dimensions);
         Script.update.connect(update);
         Script.setTimeout(move, 1000);
-        print("Initial dimensions = " + JSON.stringify(dimensions));
+        //print("Initial dimensions = " + JSON.stringify(dimensions));
     };
     this.unload = function () {
         shutdown = true;

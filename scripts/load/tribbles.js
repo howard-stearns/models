@@ -22,9 +22,10 @@ var MODEL_DIMENSION = { x: 0.3, y: 0.3, z: 0.3 };
 
 var RATE_PER_SECOND = 600;    //    The entity server will drop data if we create things too fast.
 var SCRIPT_INTERVAL = 100;
-var LIFETIME = 60;
 
-var NUMBER_TO_CREATE = 3;
+var LIFETIME = 60;
+var MOVING_TIME = LIFETIME / 2;
+var NUMBER_TO_CREATE = 125;
 
 var GRAVITY = { x: 0, y: -9.8, z: 0 };
 var VELOCITY = { x: 0.0, y: 0, z: 0 };
@@ -43,7 +44,7 @@ var totalCreated = 0;
 
 var RANGE = 3;
 var HOW_FAR_IN_FRONT_OF_ME = RANGE * 3;
-var HOW_FAR_UP = RANGE / 3;
+var HOW_FAR_UP = RANGE / 1.5;  // higher (for uneven ground) above range/2 (for distribution)
 
 
 var offset = Vec3.sum(Vec3.multiply(HOW_FAR_UP, Vec3.UNIT_Y),
@@ -74,8 +75,9 @@ Script.setInterval(function () {
     for (i = 0; (i < numToCreate) && (totalCreated < NUMBER_TO_CREATE); i++) {
         position = Vec3.sum(center, randomVector({ x: RANGE, y: RANGE, z: RANGE }));
 
-        Vec3.print("Position: ", position);
+        //Vec3.print("Position: ", position);
         Entities.addEntity({
+	    userData: MOVING_TIME.toString(),
             type: TYPE,
             modelURL: MODEL_URL,
             name: "tribble-" + totalCreated,
@@ -89,7 +91,7 @@ Script.setInterval(function () {
             gravity: (gravity ? GRAVITY : { x: 0, y: 0, z: 0}),
             collisionsWillMove: collidable,
             lifetime: LIFETIME,
-            script: "file:///Users/howardstearns/models/scripts/load/entityScriptTribble.js"
+            script: "http://howard-stearns.github.io/models/scripts/load/entityScriptTribble.js" // fixme
         });
 
         totalCreated++;

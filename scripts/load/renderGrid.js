@@ -18,15 +18,16 @@ var Entities, Script, print, Vec3;
 
 var SIZE = 1.0;
 var SEPARATION = 10.0;
-var ROWS_X = 10;
-var ROWS_Y = 5;
+var ROWS_X = 5;
+var ROWS_Y = 1;
 var ROWS_Z = 5;
 var LIFETIME = 30;
 var TYPES_TO_USE = [ // Entities will be populated from this list set by the script writer for different tests.
     //'Box',
     //'Sphere',
     //'Light',
-    'ParticleEffect',
+    //'ParticleEffect',
+    'Web',
     //"https://hifi-content.s3.amazonaws.com/ozan/dev/sets/lowpoly_island/CypressTreeGroup.fbx",
     //"http://s3.amazonaws.com/hifi-public/marketplace/hificontent/Games/blocks/block.fbx",
 ];
@@ -35,7 +36,7 @@ var MODEL_SCALE = { x: 1, y: 2, z: 3 };
 var RATE_PER_SECOND = 1000;    //    The entity server will drop data if we create things too fast.
 var SCRIPT_INTERVAL = 100;
 
-var ALLOWED_TYPES = ['Box', 'Sphere', 'Light', 'ParticleEffect']; // otherwise assumed to be a model url
+var ALLOWED_TYPES = ['Box', 'Sphere', 'Light', 'ParticleEffect', 'Web']; // otherwise assumed to be a model url
 
 var x = 0;
 var y = 0;
@@ -68,6 +69,8 @@ Script.setInterval(function () {
         };
         if (isModel) {
             properties.modelURL = type;
+	} else if (type === 'Web') {
+	    properties.sourceUrl = 'https://highfidelity.com';
         } else {
             properties.color = { red: x / ROWS_X * 255, green: y / ROWS_Y * 255, blue: z / ROWS_Z * 255 };
 	    if (type === 'ParticleEffect') {

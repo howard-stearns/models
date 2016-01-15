@@ -33,7 +33,7 @@
         var properties = Entities.getEntityProperties(entityID);
 	var parameters = properties.userData && JSON.parse(properties.userData);
 	var movingTimeout = parameters ? parameters.moveTimeout : 0;
-	console.log(properties.userData, parameters, movingTimeout);
+	print(properties.userData, parameters, movingTimeout);
         oldColor = properties.color;
         dimensions = Vec3.multiply(scale, properties.dimensions);
         Script.update.connect(update);

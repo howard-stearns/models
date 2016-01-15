@@ -1,4 +1,5 @@
 (function () {
+    // See tribbles.js
     var scale = 2, dimensions, accumulated = 0, oldColor, entityID, increment = {red: 1, green: 1, blue: 1}, shutdown = false;
     function nextWavelength(color) {
         var old = oldColor[color];
@@ -14,7 +15,6 @@
         accumulated += delta;
         if (accumulated > (1 / 60)) {
             var newColor = {red: nextWavelength('red'), green: nextWavelength('green'), blue: nextWavelength('blue')};
-            //print(JSON.stringify({oldColor: oldColor, newColor: newColor, increment: increment}));
             oldColor = newColor;
             Entities.editEntity(entityID, {color: newColor});
             accumulated = 0;
@@ -25,21 +25,19 @@
     function move() {
         var newData = {velocity: Vec3.sum({x:0, y: 1, z: 0}, randomVector()), angularVelocity: Vec3.multiply(Math.PI, randomVector())};
         var nextChange = Math.ceil(Math.random() * 2000);
-        //print('editing:' + JSON.stringify(newData));
         Entities.editEntity(entityID, newData);
-        //print('edited. setting timeout:' + nextChange);
         if (!shutdown) { Script.setTimeout(move, nextChange); }
     }
     this.preload = function (givenEntityID) {
         entityID = givenEntityID;
-        var props = Entities.getEntityProperties(entityID);
-	var movingTime = props.userData ? JSON.parse(props.userData) : 0;
-        oldColor = props.color;
-        dimensions = Vec3.multiply(scale, props.dimensions);
+        var properties = Entities.getEntityProperties(entityID);
+	var parameters = properties.userData && JSON.parse(properties.userData);
+	var movingTimeout = parameters ? parameters.moveTimeout : 0;
+        oldColor = properties.color;
+        dimensions = Vec3.multiply(scale, properties.dimensions);
         Script.update.connect(update);
         Script.setTimeout(move, 1000);
-	if (movingTime) { Script.setTimeout(function () { shutdown = true; }, movingTime * 1000); }
-        //print("Initial dimensions = " + JSON.stringify(dimensions) + " moving time = " + movingTime);
+	if (movingTimeout) { Script.setTimeout(function () { shutdown = true; }, movingTimeout * 1000); }
     };
     this.unload = function () {
         shutdown = true;

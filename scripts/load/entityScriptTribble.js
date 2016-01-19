@@ -7,7 +7,9 @@
         accumulated = 0,
         increment = {red: 1, green: 1, blue: 1},
         hasUpdate = false,
-        shutdown = false;
+        shutdown = false,
+        started = false,
+        checker;
     function nextWavelength(color) {
         var old = oldColor[color];
         if (old === 255) {
@@ -35,8 +37,8 @@
         Entities.editEntity(entityID, newData);
         if (!shutdown) { Script.setTimeout(move, nextChange); }
     }
-    this.preload = function (givenEntityID) {
-        entityID = givenEntityID;
+    function startup() {
+        started = true;
         var properties = Entities.getEntityProperties(entityID);
         var userData = properties.userData && JSON.parse(properties.userData);
         var moveTimeout = userData ? userData.moveTimeout : 0;
@@ -59,7 +61,33 @@
             }
         }
     };
+    function writeNewUserData(userData) {
+        Entities.editEntity(entityID, {userData: JSON.stringify(userData)});
+    }
+    function checkClaim() {
+        if (started) { return; }
+        var properties = Entities.getEntityProperties(entityID);
+        var userData = properties.userData && JSON.parse(properties.userData);
+        print(userData.owner, MyAvatar.sessionUUID, entityID, JSON.stringify(userData));
+        if (userData.owner === MyAvatar.sessionUUID) {
+            startup();
+        } else if (!userData.owner) {
+            print('claim it');
+            userData.owner = MyAvatar.sessionUUID;
+            writeNewUserData(userData);
+        } else if (AvatarList.getAvatar(userData.owner) === AvatarList.getAvatar(MyAvatar.sessionUUID)) { // quirk: getAvatar of missing id will answer our avatar
+            print('clear it');
+            delete userData.owner;
+            writeNewUserData(userData);
+        }
+    }
+    this.preload = function (givenEntityID) {
+        entityID = givenEntityID;
+        checkClaim();
+        checker = Script.setInterval(checkClaim, 2000);
+    };
     this.unload = function () {
+        Script.clearTimeout(checker);
         shutdown = true;
         if (hasUpdate) { Script.update.disconnect(update); }
     };

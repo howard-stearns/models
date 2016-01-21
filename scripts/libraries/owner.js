@@ -1,6 +1,6 @@
 "use strict";
 /*jslint nomen: true, plusplus: true, vars: true */
-/*global Entities, Script, MyAvatar, AvatarList, print */
+/*global Entities, Script, MyAvatar, print */
 
 // Provides utilities for claiming and renewing ownership of a key in and entity, for use among cooperating scripts in both
 // repeating and event-driven code. For example,
@@ -99,8 +99,8 @@ B      writes B1 but isn't received at entity server yet
 
              */
             print("Warning: when setting " + JSON.stringify(keySpecificOwnershipData) + " in " + JSON.stringify(properties) + ", " +
-                  AvatarList.getAvatar(existingKeySpecificData.owner).name + " (" + existingKeySpecificData.owner +
-                  ") assumed ownership of " + (Entities.getEntityProperties(entityId, ['name']).name || 'unkown') + " (" + entityId +
+                  existingKeySpecificData.owner +
+                  " assumed ownership of " + (Entities.getEntityProperties(entityId, ['name']).name || 'unknown') + " (" + entityId +
                   ") " + (Date.now() - existingKeySpecificData.timestamp) + "ms ago while we thought we had ownership. " +
                   "Releasing without writing data to network.");
             // Design choice: we cannot renew ownership here, but should we send the data anyway?

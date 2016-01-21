@@ -106,20 +106,19 @@ B      writes B1 but isn't received at entity server yet
             // Design choice: we cannot renew ownership here, but should we send the data anyway?
             // I think it is safer if we do. Alternatively, we could just return after release (which can then be synchronous).
             Script.setTimeout(function () { exports.release(entityId); }, 0); // After the edit is made.
-            keySpecificOwnershipData = null;
+        } else { // only if we're not releasing, so that we don't wipe out the other owner
+            if (keySpecificOwnershipData) {
+                allOwnershipData[key] = keySpecificOwnershipData;
+            } else {  // releasing
+                delete allOwnershipData[key];
+            }
+            if (Object.keys(allOwnershipData).length) {
+                userData[OWNERSHIP_DATA_KEY] = allOwnershipData;
+            } else { // clean up userData when the last key is removed
+                delete userData[OWNERSHIP_DATA_KEY];
+            }
+            properties.userData = Object.keys(userData).length ? JSON.stringify(userData) : ''; // never undefined
         }
-
-        if (keySpecificOwnershipData) {
-            allOwnershipData[key] = keySpecificOwnershipData;
-        } else {  // releasing
-            delete allOwnershipData[key];
-        }
-        if (Object.keys(allOwnershipData).length) {
-            userData[OWNERSHIP_DATA_KEY] = allOwnershipData;
-        } else { // clean up userData when the last key is removed
-            delete userData[OWNERSHIP_DATA_KEY];
-        }
-        properties.userData = Object.keys(userData).length ? JSON.stringify(userData) : ''; // never undefined
 
         Entities.editEntity(entityId, properties);
     }
@@ -178,10 +177,13 @@ B      writes B1 but isn't received at entity server yet
     // Synchronously invokes onRelease (which must have been set by a successful claim), and arrange to not invoke onAcquire
     // or onRelease any more. (Clients can make a new claim, of course.)
     exports.release = function release(entityId) {
-        var callbacks = handlers[entityId];
+        var callbacks = handlers[entityId],
+            ownership = getOwnershipData(entityId);
         debug('release', entityId);
         delete handlers[entityId];
-        setOwnershipData(entityId, null, {}); // remove tag
+        if (ownership.owner && (ownership.owner === MyAvatar.sessionUUID)) {
+            setOwnershipData(entityId, null, {}); // remove tag if it is still not me
+        }
         if (!callbacks) {
             print("Attempt to release '" + key + "' in " + entityId + " without ownership.");
             return;

@@ -146,7 +146,7 @@ B      writes B1 but isn't received at entity server yet
         exports.renewingEdit(entityId); // Exactly like ownership, but don't invoke callbacks yet.
         Script.setTimeout(function () { // wait for others to request. The LAST one round trip before REQUEST_ALLOWANCE wins.
             var ownershipData = getOwnershipData(entityId);
-            if (ownershipData && (ownershipData.owner === MyAvatar.sessionUUID)) { // Still me! I win!
+            if (ownershipData && (ownershipData.owner === MyAvatar.sessionUUID) && handlers[entityId]) { // Still me! I win!
                 // If our sessionUUID has changed due to a disconnect, we have to wait for an expiration just like any
                 // other owner being disconnected.
                 debug('acquired', entityId, key);

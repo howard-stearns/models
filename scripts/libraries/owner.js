@@ -43,6 +43,7 @@ ownerModule = function ownerModule(exportsObjectOrKey) {
         var userDataString = Entities.getEntityProperties(entityId, ['userData']).userData,
             userData = userDataString ? JSON.parse(userDataString) : {},
             allOwnershipData = userData[OWNERSHIP_DATA_KEY] || {}; // data for all calls of ownerModule(key)
+        debug('getOwnershipData', userDataString, JSON.stringify(allOwnershipData));
         return allOwnershipData[key]; // Just for our key.
     }
     function setOwnershipData(entityId, keySpecificOwnershipData, properties) {

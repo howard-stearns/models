@@ -33,6 +33,7 @@ ownerModule = function ownerModule(exportsObjectOrKey) {
         // This needs to be long enough for all participants to enter a claim and for the broadcasted results to reach each claimant.
         REQUEST_ALLOWANCE = exports.requestAllowance || 1000,
 
+        deleted = 'deleted', // a flag
         handlers = {}; // per entity
     function debug() {
         print([].map.call(arguments, JSON.stringify));
@@ -40,10 +41,14 @@ ownerModule = function ownerModule(exportsObjectOrKey) {
 
     // We currently keep ownership information in userData.
     function getOwnershipData(entityId) {
-        var userDataString = Entities.getEntityProperties(entityId, ['userData']).userData,
+        var properties = Entities.getEntityProperties(entityId, ['userData', 'type']),
+            userDataString = properties.userData,
             userData = userDataString ? JSON.parse(userDataString) : {},
             allOwnershipData = userData[OWNERSHIP_DATA_KEY] || {}; // data for all calls of ownerModule(key)
         debug('getOwnershipData', userDataString, allOwnershipData);
+        if (properties.type === 'Unknown') {
+            return deleted;
+        }
         return allOwnershipData[key]; // Just for our key.
     }
     function setOwnershipData(entityId, keySpecificOwnershipData, properties) {
@@ -130,6 +135,7 @@ B      writes B1 but isn't received at entity server yet
             // subscribe(key) and explicit release sendMessage(key, 'released') so that it would be "instantly" known.
             // (The case of someone disconnecting would still be slow in its response time.)
             var ownershipData = getOwnershipData(entityId);
+            if (ownershipData === deleted) { return; }
             // explictly unowned or expired (e.g., owner left)
             if (!ownershipData || ((Date.now() - ownershipData.timestamp) > HEARTBEAT_PERIOD)) {
                 requestOwnership(entityId);
@@ -145,6 +151,7 @@ B      writes B1 but isn't received at entity server yet
         exports.renewingEdit(entityId); // Exactly like ownership, but don't invoke callbacks yet.
         Script.setTimeout(function () { // wait for others to request. The LAST one round trip before REQUEST_ALLOWANCE wins.
             var ownershipData = getOwnershipData(entityId);
+            if (ownershipData === deleted) { return; }
             if (ownershipData && (ownershipData.owner === MyAvatar.sessionUUID) && handlers[entityId]) { // Still me! I win!
                 // If our sessionUUID has changed due to a disconnect, we have to wait for an expiration just like any
                 // other owner being disconnected.
@@ -181,7 +188,7 @@ B      writes B1 but isn't received at entity server yet
             ownership = getOwnershipData(entityId);
         debug('release', entityId);
         delete handlers[entityId];
-        if (ownership.owner && (ownership.owner === MyAvatar.sessionUUID)) {
+        if (ownership && (ownership.owner === MyAvatar.sessionUUID)) {  // Pun: ('deleted').owner is undefined
             setOwnershipData(entityId, null, {}); // remove tag if it is still not me
         }
         if (!callbacks) {

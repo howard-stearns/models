@@ -35,7 +35,7 @@ ownerModule = function ownerModule(exportsObjectOrKey) {
 
         handlers = {}; // per entity
     function debug() {
-        [].map.call(arguments, JSON.stringify);
+        print([].map.call(arguments, JSON.stringify));
     }
 
     // We currently keep ownership information in userData.

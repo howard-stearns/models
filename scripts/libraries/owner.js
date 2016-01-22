@@ -106,7 +106,9 @@ ownerModule = function ownerModule(exportsObjectOrKey) {
         // Network or computer delays can allow a participant to make a claim that arrives after someone else has
         // already successfully become owner. This will result in one or both parties to fail the following
         // test when they attempt to write data:
-        if (existingKeySpecificData.owner && (existingKeySpecificData.owner !== MyAvatar.sessionUUID)) {
+        if (existingKeySpecificData.owner &&
+            (existingKeySpecificData.owner !== MyAvatar.sessionUUID) &&
+            ((Date.now() - ownershipData.timestamp) <= HEARTBEAT_PERIOD)) {
             print("Warning: when setting " + JSON.stringify(keySpecificOwnershipData) + " in " + JSON.stringify(properties) + ", " +
                   existingKeySpecificData.owner +
                   " assumed ownership of " + (Entities.getEntityProperties(entityId, ['name']).name || 'unknown') + " (" + entityId +

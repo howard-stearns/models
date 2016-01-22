@@ -51,6 +51,8 @@ time 0 1 2 3 4 5 6 7 8 9 10
        |     server receives B1
 B      writes B1 but isn't received at entity server yet
 
+Variations arise when there are 100 participants....
+
 */
 
 
@@ -73,12 +75,12 @@ ownerModule = function ownerModule(exportsObjectOrKey) {
 
         // How long we sit on a request before seeing if we've won, in ms.
         // This needs to be long enough for all participants to enter a claim and for the broadcasted results to reach each claimant.
-        REQUEST_ALLOWANCE = exports.requestAllowance || 1000,
+        REQUEST_ALLOWANCE = exports.requestAllowance || 500,
 
         deleted = 'deleted', // a flag
         handlers = {}; // per entity
     function debug() {
-        print([].map.call(arguments, JSON.stringify));
+        //print([].map.call(arguments, JSON.stringify));
     }
 
     // We currently keep ownership information in userData.
@@ -185,6 +187,8 @@ ownerModule = function ownerModule(exportsObjectOrKey) {
     // * Applications cannot rely on onRelease being invoked by the owner, as the client may have quit.
     // * You claim a key (an arbitrary opaque string) in use by cooperating scripts. You do _not_ claim an entity property.
     //   Thus there's nothing to keep anyone from editing a property in the normal way, without ownership.
+    //   Note that entityScripts/keepAway.js uses two invocations of ownerModule with different keys, and the owning processes
+    //   associated with each have different lifetimes, and both write to velocity in their own way.
     exports.claim = function claim(entityId, onAcquire, onRelease) {
         debug('claim', entityId);
         if (handlers[entityId]) {

@@ -2,8 +2,8 @@
 /*jslint nomen: true, plusplus: true, vars: true */
 /*global Entities, Script, MyAvatar, print */
 
-// Provides utilities for claiming and renewing ownership of a key in and entity, for use among cooperating scripts in both
-// repeating and event-driven code. For example,
+// Provides utilities claim, renewingEdit and release of ownership of a key in and entity, for use among cooperating scripts
+// in both repeating and event-driven code. For example,
 // * An entity with an entity script may have a Script.update.connect or Script.setInterval function that repeatedly changes
 //   properties of the entity. The exported claim function can be used to start the update or interval function in only one
 //   of the entity scripts.
@@ -11,6 +11,48 @@
 //   on an entity at a time (e.g., when multiple people click on the entity).
 //
 // The goal here is to efficiently avoid duplication of work. It does not absolutely prevent some overlapping edits.
+
+
+/* Some of the cases:
+
+A    writes A0 
+     |     reads B1 - looses            NORMAL CASE
+     V     ^                            A bids and loses.
+time 0 1 2 3                            B bids and wins.
+       ^   V
+       |   reads B1 - wins
+B      writes B1
+
+-------------------------------------------------------------------
+
+A    writes A0                           SHIFT CASE
+     |     reads A0 - wins               A thinks it is owner, but fails when it tries to write.
+     |     ^     reads B0 - releases       It cooperatively releases at that time.
+     V     |     ^                       B thinks it is owner and continues
+time 0 1 2 3 4 5 6                       (Unfortunately, this leaves the SLOW machine in charge!)
+       ^     ^   V
+       |     |   reads B1
+       |     server receives B1
+B      writes B1 but isn't received at entity server yet
+
+-------------------------------------------------------------------
+
+A    writes A0                           INTERLEAVED CASE
+     |     reads A0 - wins               Both think they win, and both writes interleave each other
+     |     ^       writes A7             Assumption is that we cannot be so unlucky for very long.
+     |     |       |                     Eventually resolves, with some duplicate work.
+     |     |       |   has not received B8, sees A7 still, and writes A9
+     V     |       V   V
+time 0 1 2 3 4 5 6 7 8 9 10
+       ^     ^   |   ^   ^
+       |     |   |   |   has not received A7, see B8 still, and writes B10
+       |     |   V   writes B8
+       |     |   reads B1 - wins
+       |     server receives B1
+B      writes B1 but isn't received at entity server yet
+
+*/
+
 
 // Answers a an object with the exported functions, and accepts an object that can either be the key string or an object to be
 // that the exported functions will be added to (and from which non-default parameters can be specified).
@@ -65,44 +107,6 @@ ownerModule = function ownerModule(exportsObjectOrKey) {
         // already successfully become owner. This will result in one or both parties to fail the following
         // test when they attempt to write data:
         if (existingKeySpecificData.owner && (existingKeySpecificData.owner !== MyAvatar.sessionUUID)) {
-            /*
-A    writes A0 
-     |     reads B1 - looses            NORMAL CASE
-     V     ^                            A bids and loses.
-time 0 1 2 3                            B bids and wins.
-       ^   V
-       |   reads B1 - wins
-B      writes B1
-
--------------------------------------------------------------------
-
-A    writes A0                           SHIFT CASE
-     |     reads A0 - wins               A thinks it is owner, but fails when it tries to write.
-     |     ^     reads B0 - releases       It cooperatively releases at that time.
-     V     |     ^                       B thinks it is owner and continues
-time 0 1 2 3 4 5 6                       (Unfortunately, this leaves the SLOW machine in charge!)
-       ^     ^   V
-       |     |   reads B1
-       |     server receives B1
-B      writes B1 but isn't received at entity server yet
-
--------------------------------------------------------------------
-
-A    writes A0                           INTERLEAVED CASE
-     |     reads A0 - wins               Both think they win, and both writes interleave each other
-     |     ^       writes A7             Assumption is that we cannot be so unlucky for very long.
-     |     |       |                     Eventually resolves, with some duplicate work.
-     |     |       |   has not received B8, sees A7 still, and writes A9
-     V     |       V   V
-time 0 1 2 3 4 5 6 7 8 9 10
-       ^     ^   |   ^   ^
-       |     |   |   |   has not received A7, see B8 still, and writes B10
-       |     |   V   writes B8
-       |     |   reads B1 - wins
-       |     server receives B1
-B      writes B1 but isn't received at entity server yet
-
-             */
             print("Warning: when setting " + JSON.stringify(keySpecificOwnershipData) + " in " + JSON.stringify(properties) + ", " +
                   existingKeySpecificData.owner +
                   " assumed ownership of " + (Entities.getEntityProperties(entityId, ['name']).name || 'unknown') + " (" + entityId +
@@ -110,8 +114,15 @@ B      writes B1 but isn't received at entity server yet
                   "Releasing without writing data to network.");
             // Design choice: we cannot renew ownership here, but should we send the data anyway?
             // I think it is safer if we do. Alternatively, we could just return after release (which can then be synchronous).
-            Script.setTimeout(function () { exports.release(entityId); }, 0); // After the edit is made.
+            var handlerData = handlers[entityId];
+            if (handlerData) {
+                Script.setTimeout(function () {
+                    handlerData.onRelease();  // Don't remove handlers...
+                    waitForUnowned(entityId); // ... and go back to waiting.
+                }, 0); // After the edit is made, below.
+            }
         } else { // only if we're not releasing, so that we don't wipe out the other owner
+
             if (keySpecificOwnershipData) {
                 allOwnershipData[key] = keySpecificOwnershipData;
             } else {  // releasing
@@ -198,9 +209,8 @@ B      writes B1 but isn't received at entity server yet
         callbacks.onRelease();
     };
 
-    // Just like Entities.editEntity, but with an additional key argument. As the properties are written to the
-    // the entity specified by entityId, the ownership of key is re-asserted, which prevents anyone else from
-    // acquiring ownserhip of key for one HEARTBEAT_PERIOD. Caller must already have already succesfully
+    // Just like Entities.editEntity, but the ownership of key is re-asserted, which prevents anyone else from
+    // acquiring ownership of key for one HEARTBEAT_PERIOD. Caller must already have already succesfully
     // claim'd ownership of key. Side-effects properties with new/changed userData.
     exports.renewingEdit = function renewingEdit(entityId, optionalProperties) {
         debug('renewingEdit', entityId, JSON.stringify(optionalProperties));

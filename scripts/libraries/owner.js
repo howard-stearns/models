@@ -108,7 +108,7 @@ ownerModule = function ownerModule(exportsObjectOrKey) {
         // test when they attempt to write data:
         if (existingKeySpecificData.owner &&
             (existingKeySpecificData.owner !== MyAvatar.sessionUUID) &&
-            ((Date.now() - ownershipData.timestamp) <= HEARTBEAT_PERIOD)) {
+            ((Date.now() - existingKeySpecificData.timestamp) <= HEARTBEAT_PERIOD)) { // Why is this test needed?
             print("Warning: when setting " + JSON.stringify(keySpecificOwnershipData) + " in " + JSON.stringify(properties) + ", " +
                   existingKeySpecificData.owner +
                   " assumed ownership of " + (Entities.getEntityProperties(entityId, ['name']).name || 'unknown') + " (" + entityId +

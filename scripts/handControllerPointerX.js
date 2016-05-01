@@ -295,11 +295,11 @@ function checkHardware() {
         case 'Vive':
             //mapToAction('RS', 'ReticleClick');
             //mapToAction('LS', 'ReticleClick');
-            mapping.from(Controller.Hardware.Vive.RS).to(Controller.Actions.ReticleClick);
-            mapping.from(Controller.Hardware.Vive.RX).to(Controller.Actions.ReticleClick);
-            mapping.from(Controller.Hardware.Vive.RY).to(Controller.Actions.ReticleClick);
+            clickMapping.from(Controller.Hardware.Vive.RS).to(Controller.Actions.ReticleClick);
+            clickMapping.from(Controller.Hardware.Vive.RX).to(Controller.Actions.ReticleClick);
+            clickMapping.from(Controller.Hardware.Vive.RY).to(Controller.Actions.ReticleClick);
 
-            mapping.from(Controller.Hardware.Vive.RT).to(Controller.Actions.ReticleClick);
+            clickMapping.from(Controller.Hardware.Vive.RT).to(Controller.Actions.ReticleClick);
 
             //clickMapping.from(Controller.Hardware.Vive.RS).when(Controller.Hardware.Application.SnapTurn).to(Controller.Actions.ReticleClick);
             //clickMapping.from(Controller.Hardware.Vive.LS).when(Controller.Hardware.Application.SnapTurn).to(Controller.Actions.ReticleClick);

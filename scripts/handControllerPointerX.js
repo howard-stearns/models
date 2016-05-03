@@ -16,7 +16,7 @@
 // Control the "mouse" using hand controller. (HMD and desktop.)
 // For now:
 // Hydra thumb button 3 is left-mouse, button 4 is right-mouse.
-// Vive thumb pad is left mouse (but that interferes with driveing!). Vive menu button is context menu (right mouse).
+// A click in the center of the vive thumb pad is left mouse. Vive menu button is context menu (right mouse).
 // First-person only.
 // Starts right handed, but switches to whichever is free: Whichever hand was NOT most recently squeezed.
 //   (For now, the thumb buttons on both controllers are always on.)
@@ -285,24 +285,34 @@ function checkHardware() {
         function mapToAction(button, action) {
             clickMapping.from(Controller.Hardware[hardware][button]).peek().to(Controller.Actions[action]);
         }
+        function makeViveWhen(click, x, y) {
+            var viveClick = Controller.Hardware.Vive[click],
+                viveX = Controller.Hardware.Vive[x],
+                viveY = Controller.Hardware.Vive[y];
+            return function () {
+                return Controller.getValue(viveClick) && !Controller.getValue(viveX) && !Controller.getValue(viveY);
+            };
+        }
         switch (hardware) {
         case 'Hydra':
             mapToAction('R3', 'ReticleClick');
-            mapToAction('R4', 'ContextMenu');
             mapToAction('L3', 'ReticleClick');
+            mapToAction('R4', 'ContextMenu');
             mapToAction('L4', 'ContextMenu');
             break;
         case 'Vive':
-            //mapToAction('RS', 'ReticleClick');
-            //mapToAction('LS', 'ReticleClick');
-            clickMapping.from(Controller.Hardware.Vive.RS).to(Controller.Actions.ReticleClick);
-            clickMapping.from(Controller.Hardware.Vive.RX).to(Controller.Actions.ReticleClick);
-            clickMapping.from(Controller.Hardware.Vive.RY).to(Controller.Actions.ReticleClick);
+            // This part should just be moved to interface/resources/controllers/vive.json (after changing syntax to json).
+            // FIX SYSTEM BUG: where negative values accentuated by deadZone https://app.asana.com/0/26225263936266/119447737029621
+            clickMapping.from(Controller.Hardware.Vive.LY).when(Controller.Hardware.Vive.LS).invert().deadZone(0.7).to(Controller.Standard.LY);
+            clickMapping.from(Controller.Hardware.Vive.LX).when(Controller.Hardware.Vive.LS).deadZone(0.7).to(Controller.Standard.LX);
+            clickMapping.from(Controller.Hardware.Vive.RY).when(Controller.Hardware.Vive.RS).invert().deadZone(0.7).to(Controller.Standard.RY);
+            clickMapping.from(Controller.Hardware.Vive.RX).when(Controller.Hardware.Vive.RS).deadZone(0.7).to(Controller.Standard.RX);
 
-            clickMapping.from(Controller.Hardware.Vive.RT).to(Controller.Actions.ReticleClick);
-
-            //clickMapping.from(Controller.Hardware.Vive.RS).when(Controller.Hardware.Application.SnapTurn).to(Controller.Actions.ReticleClick);
-            //clickMapping.from(Controller.Hardware.Vive.LS).when(Controller.Hardware.Application.SnapTurn).to(Controller.Actions.ReticleClick);
+            // When touchpad click is NOT treated as movement, treat as left click
+            clickMapping.from(Controller.Hardware.Vive.RS).when(makeViveWhen('RS', 'RX', 'RY')).to(Controller.Actions.ReticleClick);
+            clickMapping.from(Controller.Hardware.Vive.LS).when(makeViveWhen('LS', 'LX', 'LY')).to(Controller.Actions.ReticleClick);
+            mapToAction('RightApplicationMenu', 'ContextMenu');
+            mapToAction('LeftApplicationMenu', 'ContextMenu');
             break;
         }
 

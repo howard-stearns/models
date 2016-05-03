@@ -91,35 +91,6 @@ function LatchedToggle(onFunction, offFunction, state) {
     };
 }
 
-// Code copied and adapted from handControllerGrab.js. We should refactor this.
-function Trigger() {
-    var TRIGGER_SMOOTH_RATIO = 0.1; //  Time averaging of trigger - 0.0 disables smoothing
-    var TRIGGER_ON_VALUE = 0.4; //  Squeezed just enough to activate search or near grab
-    var TRIGGER_GRAB_VALUE = 0.85; //  Squeezed far enough to complete distant grab
-    var TRIGGER_OFF_VALUE = 0.15;
-    var that = this;
-    that.triggerValue = 0; // rolling average of trigger value
-    that.rawTriggerValue = 0;
-    that.triggerPress = function (value) {
-        that.rawTriggerValue = value;
-    };
-    that.updateSmoothedTrigger = function () {
-        var triggerValue = that.rawTriggerValue;
-        // smooth out trigger value
-        that.triggerValue = (that.triggerValue * TRIGGER_SMOOTH_RATIO) +
-            (triggerValue * (1.0 - TRIGGER_SMOOTH_RATIO));
-    };
-    that.triggerSmoothedGrab = function () {
-        return that.triggerValue > TRIGGER_GRAB_VALUE;
-    };
-    that.triggerSmoothedSqueezed = function () {
-        return that.triggerValue > TRIGGER_ON_VALUE;
-    };
-    that.triggerSmoothedReleased = function () {
-        return that.triggerValue < TRIGGER_OFF_VALUE;
-    };
-}
-
 // VERTICAL FIELD OF VIEW ---------
 //
 // Cache the verticalFieldOfView setting and update it every so often.
@@ -256,21 +227,26 @@ setupHandler(Controller.mouseDoublePressEvent, onMouseClick);
 
 // CONTROLLER MAPPING ---------
 //
-// Synthesize left and right mouse click from controller, and get trigger values matching handControllerGrab.
-var triggerMapping;
-var leftTrigger = new Trigger();
-var rightTrigger = new Trigger();
+
+var activeHand = Controller.Standard.RightHand;
+function toggleHand() {
+    if (activeHand === Controller.Standard.RightHand) {
+        activeHand = Controller.Standard.LeftHand;
+    } else {
+        activeHand = Controller.Standard.RightHand;
+    }
+}
 
 // Create clickMappings as needed, on demand.
 var clickMappings = {}, clickMapping, clickMapToggle;
 var hardware; // undefined
+
 function checkHardware() {
     var newHardware = Controller.Hardware.Hydra ? 'Hydra' : (Controller.Hardware.Vive ? 'Vive' : null); // not undefined
     if (hardware === newHardware) { return; }
     print('Setting mapping for new controller hardware:', newHardware);
     if (clickMapToggle) {
         clickMapToggle.setState(false);
-        triggerMapping.disable();
         // FIX SYSTEM BUG: This does not work when hardware changes.
         Window.alert("This isn't likely to work because of " +
                      'https://app.asana.com/0/26225263936266/118428633439654\n' +
@@ -278,13 +254,22 @@ function checkHardware() {
     }
     hardware = newHardware;
     if (clickMappings[hardware]) {
-        clickMapping = clickMappings[hardware].click;
-        triggerMapping = clickMappings[hardware].trigger;
+        clickMapping = clickMappings[hardware];
     } else {
         clickMapping = Controller.newMapping(Script.resolvePath('') + '-click-' + hardware);
         Script.scriptEnding.connect(clickMapping.disable);
         function mapToAction(button, action) {
             clickMapping.from(Controller.Hardware[hardware][button]).peek().to(Controller.Actions[action]);
+        }
+        function makeHandToggle(button, hand, optionalWhen) {
+            var whenThunk = optionalWhen || function () { return true; };
+            function maybeToggle() {
+                if (activeHand !== Controller.Standard[hand]) {
+                    toggleHand();
+                }
+
+            }
+            clickMapping.from(Controller.Hardware[hardware][button]).peek().when(whenThunk).to(maybeToggle);
         }
         function makeViveWhen(click, x, y) {
             var viveClick = Controller.Hardware.Vive[click],
@@ -299,6 +284,9 @@ function checkHardware() {
         }
         switch (hardware) {
         case 'Hydra':
+            makeHandToggle('R3', 'RightHand');
+            makeHandToggle('L3', 'LeftHand');
+
             mapToAction('R3', 'ReticleClick');
             mapToAction('L3', 'ReticleClick');
             mapToAction('R4', 'ContextMenu');
@@ -313,6 +301,8 @@ function checkHardware() {
             clickMapping.from(Controller.Hardware.Vive.RX).when(Controller.Hardware.Vive.RS).deadZone(0.7).to(Controller.Standard.RX);
 
             // When touchpad click is NOT treated as movement, treat as left click
+            makeHandToggle('RS', 'RightHand', makeViveWhen('RS', 'RX', 'RY'));
+            makeHandToggle('LS', 'LeftHand', makeViveWhen('LS', 'LX', 'LY'));
             clickMapping.from(Controller.Hardware.Vive.RS).when(makeViveWhen('RS', 'RX', 'RY')).to(Controller.Actions.ReticleClick);
             clickMapping.from(Controller.Hardware.Vive.LS).when(makeViveWhen('LS', 'LX', 'LY')).to(Controller.Actions.ReticleClick);
             mapToAction('RightApplicationMenu', 'ContextMenu');
@@ -320,33 +310,12 @@ function checkHardware() {
             break;
         }
 
-        triggerMapping = Controller.newMapping(Script.resolvePath('') + '-trigger-' + hardware);
-        Script.scriptEnding.connect(triggerMapping.disable);
-        triggerMapping.from(Controller.Standard.RT).peek().to(rightTrigger.triggerPress);
-        triggerMapping.from(Controller.Standard.LT).peek().to(leftTrigger.triggerPress);
-
-        clickMappings[hardware] = {click: clickMapping, trigger: triggerMapping};
+        clickMappings[hardware] = clickMapping;
     }
     clickMapToggle = new LatchedToggle(clickMapping.enable, clickMapping.disable);
     clickMapToggle.setState(true);
-    triggerMapping.enable();
 }
 checkHardware();
-
-var activeHand = Controller.Standard.RightHand;
-var activeTrigger = rightTrigger;
-var inactiveTrigger = leftTrigger;
-function toggleHand() {
-    if (activeHand === Controller.Standard.RightHand) {
-        activeHand = Controller.Standard.LeftHand;
-        activeTrigger = leftTrigger;
-        inactiveTrigger = rightTrigger;
-    } else {
-        activeHand = Controller.Standard.RightHand;
-        activeTrigger = rightTrigger;
-        inactiveTrigger = leftTrigger;
-    }
-}
 
 // VISUAL AID -----------
 // Same properties as handControllerGrab search sphere
@@ -409,12 +378,7 @@ function updateVisualization(controllerPosition, controllerDirection, hudPositio
 //
 function update() {
     var now = Date.now();
-    leftTrigger.updateSmoothedTrigger();
-    rightTrigger.updateSmoothedTrigger();
     if (!handControllerLockOut.expired(now)) { return turnOffVisualization(); } // Let them use mouse it in peace.
-
-    if (activeTrigger.triggerSmoothedSqueezed() && !inactiveTrigger.triggerSmoothedSqueezed()) { toggleHand(); }
-
     if (!Menu.isOptionChecked("First Person")) { return turnOffVisualization(); }  // What to do? menus can be behind hand!
     var controllerPose = getControllerPose(activeHand);
     // Vive is effectively invalid when not in HMD

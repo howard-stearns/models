@@ -5,7 +5,7 @@ var imono = {
     localOnly: false,
     stereo: false,
     volume: 1,
-    position: MyAvatar.position,
+    position: Avatar.position,
     loop: true
 };
 var piano1 = SoundCache.getSound("http://howard-stearns.github.io/models/sounds/piano1.wav");

@@ -33,7 +33,8 @@ function showFeedWindow() {
 }
 
 var SNAPSHOT_REVIEW_URL = Script.resolvePath("/~/system/html/SnapshotReview.html");
-
+    print('snapshot review path', SNAPSHOT_REVIEW_URL);
+    
 var outstanding;
 function confirmShare(data) {
     var dialog = new OverlayWebWindow('Snapshot Review', SNAPSHOT_REVIEW_URL, 800, 320);

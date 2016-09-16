@@ -16,7 +16,7 @@ var resetOverlays;
 var reticleVisible;
 var button = toolBar.addButton({
     objectName: "snapshot",
-    imageURL: Script.resolvePath("assets/images/tools/snap.svg"),
+    imageURL: Script.resolvePath("/~/system/assets/images/tools/snap.svg"),
     visible: true,
     buttonState: 1,
     defaultState: 1,
@@ -32,7 +32,7 @@ function showFeedWindow() {
     DialogsManager.showFeed();
 }
 
-var SNAPSHOT_REVIEW_URL = Script.resolvePath("html/SnapshotReview.html");
+var SNAPSHOT_REVIEW_URL = Script.resolvePath("/~/system/html/SnapshotReview.html");
 
 var outstanding;
 function confirmShare(data) {

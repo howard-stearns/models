@@ -64,11 +64,10 @@ function update() { // Update the overlays to align with all the other avatars.
     if (deficit > 0) {
         while (deficit-- > 0) {
             overlays.push(new ExtendedOverlay(Overlays.addOverlay("model", {
-            //overlays.push(new ExtendedOverlay(Overlays.addOverlay("sphere", {
                 drawInFront: true, // still see people who are behind walls
                 alpha: ALPHA_TARGET,
                 solid: true, // not mesh
-                url: "http://hifi-content.s3.amazonaws.com/alan/dev/Person-basemesh.fbx" //"http://hifi-content.s3.amazonaws.com/alan/dev/equip-Fresnel-3.fbx"
+                url: "http://hifi-content.s3.amazonaws.com/alan/dev/Person-basemesh.fbx"
             })));
         }
     } else if (deficit < 0) {
@@ -91,7 +90,7 @@ function update() { // Update the overlays to align with all the other avatars.
         var properties = {
             color: { red: colorComponent(1 - fraction), green: MIN_COLOR_COMPONENT, blue: colorComponent(fraction) },
             // FIXME: I'm sure we need the diameter to get slightly smaller with distance, so that I end up intersecting with
-            // the nearest of multiple overlays that I click on. However, I'm not sure that I go this right.
+            // the nearest of multiple overlays that I click on. However, I'm not sure that I got this right.
             dimensions: {y: principleDimension, x: secondaryDimension, z: secondaryDimension},
             position: position
             // MAYBE FIXME: should the mesh always turn to face me?

@@ -93,7 +93,8 @@ function angleBetweenVectorsInPlane(from, to, normal) {
 }
 
 var MAX_HORIZONTAL_ANGLE = 35; // degrees
-var MAX_VERTICAL_ANGLE = 20;
+var MAX_VERTICAL_ANGLE_HMD = 30 ; //20;
+var MAX_VERTICAL_ANGLE_DESKTOP = 20;
 
 var MAX_COLOR_COMPONENT = 250;
 var MIN_COLOR_COMPONENT = 20;
@@ -137,6 +138,7 @@ function update() { // Update the overlays to align with all the other avatars.
         var vector = Vec3.subtract(position, viewCenter);
         var distance = Vec3.length(vector);
         var normalizedVector = Vec3.multiply(1 / distance, vector);
+        var MAX_VERTICAL_ANGLE = HMD.active ? MAX_VERTICAL_ANGLE_HMD : MAX_VERTICAL_ANGLE_DESKTOP;
 
         var horizontalAngle = angleBetweenVectorsInPlane(forward, normalizedVector, up);
         var verticalAngle =  angleBetweenVectorsInPlane(forward, normalizedVector, right);

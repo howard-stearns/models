@@ -1,0 +1,158 @@
+{
+    "Entities": [
+        {
+            "angularDamping": 1,
+            "clientOnly": 0,
+            "color": {
+                "blue": 0,
+                "green": 0,
+                "red": 255
+            },
+            "created": "2017-05-23T19:12:58Z",
+            "damping": 1,
+            "dimensions": {
+                "x": 20,
+                "y": 10,
+                "z": 20
+            },
+            "id": "{f9cffbce-611c-42b3-bec9-649821aeb3f6}",
+            "lastEdited": 1495662331138168,
+            "lastEditedBy": "{e6650e58-ac88-445d-8b7f-4b5b3dc8974c}",
+            "name": "ceiling",
+            "owningAvatarID": "{00000000-0000-0000-0000-000000000000}",
+            "position": {
+                "x": 0,
+                "y": 11,
+                "z": 0
+            },
+            "queryAACube": {
+                "scale": 30,
+                "x": -15,
+                "y": -4,
+                "z": -15
+            },
+            "rotation": {
+                "w": 1,
+                "x": -1.52587890625e-05,
+                "y": -1.52587890625e-05,
+                "z": -1.52587890625e-05
+            },
+            "shape": "Cube",
+            "type": "Box",
+            "userData": "{\"grabbableKey\":{\"grabbable\":true}}"
+        },
+        {
+            "clientOnly": 0,
+            "color": {
+                "blue": 255,
+                "green": 0,
+                "red": 255
+            },
+            "created": "2017-05-25T20:52:40Z",
+            "dimensions": {
+                "x": 20,
+                "y": 10,
+                "z": 20
+            },
+            "id": "{6dccad05-da6d-4ed1-8d44-b84071f4d71e}",
+            "lastEdited": 1495745677984381,
+            "lastEditedBy": "{7c66752c-81c2-4e68-8c90-b120372f9267}",
+            "name": "obstruction2",
+            "owningAvatarID": "{00000000-0000-0000-0000-000000000000}",
+            "position": {
+                "x": 0,
+                "y": 30.5,
+                "z": 0
+            },
+            "queryAACube": {
+                "scale": 30,
+                "x": -15,
+                "y": 15.5,
+                "z": -15
+            },
+            "rotation": {
+                "w": 1,
+                "x": -1.52587890625e-05,
+                "y": -1.52587890625e-05,
+                "z": -1.52587890625e-05
+            },
+            "shape": "Cube",
+            "type": "Box",
+            "userData": "{\"grabbableKey\":{\"grabbable\":true}}"
+        },
+        {
+            "clientOnly": 0,
+            "color": {
+                "blue": 0,
+                "green": 0,
+                "red": 255
+            },
+            "created": "2017-05-22T22:23:25Z",
+            "dimensions": {
+                "x": 20,
+                "y": 10,
+                "z": 20
+            },
+            "id": "{faf4a892-aeee-46cd-acf3-ba872b4c7f50}",
+            "lastEdited": 1495748585929773,
+            "lastEditedBy": "{b0624ccb-78ef-4c2d-a643-557fccc7e4dd}",
+            "name": "floor",
+            "owningAvatarID": "{00000000-0000-0000-0000-000000000000}",
+            "queryAACube": {
+                "scale": 30,
+                "x": -15,
+                "y": -15,
+                "z": -15
+            },
+            "rotation": {
+                "w": 1,
+                "x": -1.52587890625e-05,
+                "y": -1.52587890625e-05,
+                "z": -1.52587890625e-05
+            },
+            "shape": "Cube",
+            "type": "Box",
+            "userData": "{\"grabbableKey\":{\"grabbable\":true}}"
+        },
+        {
+            "clientOnly": 0,
+            "color": {
+                "blue": 0,
+                "green": 255,
+                "red": 0
+            },
+            "created": "2017-05-24T21:41:07Z",
+            "dimensions": {
+                "x": 15,
+                "y": 10,
+                "z": 15
+            },
+            "id": "{32a8975f-f6f4-4aad-85f4-fa8a1cb32a2e}",
+            "lastEdited": 1495738525140676,
+            "lastEditedBy": "{3b573574-cde8-47db-be90-27265c5c884a}",
+            "name": "obstacle",
+            "owningAvatarID": "{00000000-0000-0000-0000-000000000000}",
+            "position": {
+                "x": 0,
+                "y": 15.5,
+                "z": 0
+            },
+            "queryAACube": {
+                "scale": 23.452077865600586,
+                "x": -11.726038932800293,
+                "y": 3.773961067199707,
+                "z": -11.726038932800293
+            },
+            "rotation": {
+                "w": 1,
+                "x": -1.52587890625e-05,
+                "y": -1.52587890625e-05,
+                "z": -1.52587890625e-05
+            },
+            "shape": "Cube",
+            "type": "Box",
+            "userData": "{\"grabbableKey\":{\"grabbable\":true}}"
+        }
+    ],
+    "Version": 70
+}

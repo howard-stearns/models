@@ -1,0 +1,57 @@
+{
+    "DataVersion": 0,
+    "Entities": [
+        {
+            "angularDamping": 0,
+            "clientOnly": false,
+            "collisionless": true,
+            "color": {
+                "blue": 239,
+                "green": 180,
+                "red": 0
+            },
+            "created": "2018-11-26T00:55:55Z",
+            "damping": 0,
+            "dimensions": {
+                "x": 0.20000000298023224,
+                "y": 0.20000000298023224,
+                "z": 0.20000000298023224
+            },
+            "grab": {
+                "equippableLeftRotation": {
+                    "w": 1,
+                    "x": -1.52587890625e-05,
+                    "y": -1.52587890625e-05,
+                    "z": -1.52587890625e-05
+                },
+                "equippableRightRotation": {
+                    "w": 1,
+                    "x": -1.52587890625e-05,
+                    "y": -1.52587890625e-05,
+                    "z": -1.52587890625e-05
+                }
+            },
+            "id": "{2f3d3956-1c22-4b61-bcfe-ddbc8f3e0db3}",
+            "ignoreForCollisions": true,
+            "lastEdited": 1543193850312462,
+            "lastEditedBy": "{ce1c3cf6-dcea-4fe2-8f0c-6a05a884a12b}",
+            "owningAvatarID": "{00000000-0000-0000-0000-000000000000}",
+            "queryAACube": {
+                "scale": 0.3464101552963257,
+                "x": -0.17320507764816284,
+                "y": -0.17320507764816284,
+                "z": -0.17320507764816284
+            },
+            "rotation": {
+                "w": 1,
+                "x": -1.52587890625e-05,
+                "y": -1.52587890625e-05,
+                "z": -1.52587890625e-05
+            },
+            "shape": "Cube",
+            "type": "Box"
+        }
+    ],
+    "Id": "{85ccdb7f-5a17-480f-a4de-3eb6c76fa98d}",
+    "Version": 96
+}

@@ -1,0 +1,33 @@
+{
+    "Entities": [
+        {
+            "type": "Box",
+            "name": "portal solo launcher",
+            "serverScripts": "(function () {
+this.preload = function (launcherId) {
+var launcherProps = Entities.getEntityProperties(launcherId);
+var cube = Entities.addEntity({
+   name: 'portal cube',
+   position: Vec3.sum(launcherProps.position, {x:0, y:0, z:-2}),
+   angularVelocity: {x: 0, y: 0.35, z: 0},
+   angularDamping: 0,
+   color: {red:0, green:255, blue:0},
+   type: 'Box'
+});
+Entities.addEntity({
+   name: 'portal solo',
+   dimensions: {x: 2, y: 2, z: 0.1},
+   position: launcherProps.position,
+   collisionless: true,
+   script: 'http://localhost:8000/portal-client.js?v=119',
+   userData: JSON.stringify({farID: cube}),
+   color: {red: 20, green: 20, blue: 20},
+   type: 'Box'
+});
+Entities.deleteEntity(launcherId);
+};})"
+        }
+    ]
+}
+
+

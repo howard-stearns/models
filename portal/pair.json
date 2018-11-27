@@ -1,0 +1,40 @@
+{
+    "Entities": [
+        {
+            "type": "Box",
+            "name": "portal solo launcher",
+            "serverScripts": "(function () {
+this.preload = function (launcherId) {
+var launcherProps = Entities.getEntityProperties(launcherId);
+var model = 'http://mpassets.highfidelity.com/f9085148-02f3-401c-b823-1df9f616f362-v1/mirror.fbx';
+var script = 'http://localhost:8000/portal-client.js?v=113';
+var portal1 = Entities.addEntity({
+   name: 'portal pair',
+   position: Vec3.sum(launcherProps.position, {x:0, y:0, z:-5}),
+   angularVelocity: {x: 0, y: 0.35, z: 0},
+   angularDamping: 0,
+   dimensions: {x: 2, y: 2, z: 0.01},
+   script: script,
+   modelURL: model,
+   shapeType: 'simple-hull',
+   type: 'Model'
+});
+var portal2 = Entities.addEntity({
+   name: 'portal pair',
+   dimensions: {x: 2, y: 2, z: 0.01},
+   position: launcherProps.position,
+   script: script,
+   userData: JSON.stringify({farID: portal1}),
+   modelURL: model,
+   shapeType: 'simple-hull',
+   type: 'Model'
+});
+var datum = {userData: JSON.stringify({farID: portal2})};
+Script.setTimeout(function () {
+ Entities.editEntity(portal1, datum);
+ Entities.deleteEntity(launcherId);
+}, 1000);
+};})"
+        }
+    ]
+}

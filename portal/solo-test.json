@@ -1,0 +1,116 @@
+{
+    "DataVersion": 0,
+    "Entities": [
+        {
+            "clientOnly": false,
+            "created": "2018-11-24T01:33:50Z",
+            "dimensions": {
+                "x": 2,
+                "y": 2,
+                "z": 0.009999999776482582
+            },
+            "grab": {
+                "equippableLeftRotation": {
+                    "w": 1,
+                    "x": -1.52587890625e-05,
+                    "y": -1.52587890625e-05,
+                    "z": -1.52587890625e-05
+                },
+                "equippableRightRotation": {
+                    "w": 1,
+                    "x": -1.52587890625e-05,
+                    "y": -1.52587890625e-05,
+                    "z": -1.52587890625e-05
+                }
+            },
+            "id": "{351c0106-77de-4609-a1d8-484476df0df3}",
+            "lastEdited": 1543023392024238,
+            "lastEditedBy": "{c6ab2e61-b90c-42d0-8ef6-a92e08161fe6}",
+            "modelURL": "http://mpassets.highfidelity.com/f9085148-02f3-401c-b823-1df9f616f362-v1/mirror.fbx?2",
+            "name": "portal",
+            "owningAvatarID": "{00000000-0000-0000-0000-000000000000}",
+            "position": {
+                "x": 2.3115158081054688,
+                "y": 0,
+                "z": 3.1518001556396484
+            },
+            "queryAACube": {
+                "scale": 2.828444719314575,
+                "x": 0.8972934484481812,
+                "y": -1.4142223596572876,
+                "z": 1.7375777959823608
+            },
+            "rotation": {
+                "w": 1,
+                "x": -1.52587890625e-05,
+                "y": -1.52587890625e-05,
+                "z": -1.52587890625e-05
+            },
+            "script": "http://localhost:8000/portal-client.js?v=62",
+            "serverScripts": "http://localhost:8000/portal-server.js?v=1",
+            "shapeType": "simple-hull",
+            "type": "Model",
+            "userData": "{\"farID\":\"{a00a3a0e-9419-44e1-aafb-edccace25c9d}\"}"
+        },
+        {
+            "angularDamping": 0,
+            "angularVelocity": {
+                "x": 0,
+                "y": 0.3490658402442932,
+                "z": 0
+            },
+            "clientOnly": false,
+            "color": {
+                "blue": 0,
+                "green": 255,
+                "red": 0
+            },
+            "created": "2018-11-24T01:36:02Z",
+            "damping": 0,
+            "dimensions": {
+                "x": 0.20000000298023224,
+                "y": 0.20000000298023224,
+                "z": 0.20000000298023224
+            },
+            "grab": {
+                "equippableLeftRotation": {
+                    "w": 1,
+                    "x": -1.52587890625e-05,
+                    "y": -1.52587890625e-05,
+                    "z": -1.52587890625e-05
+                },
+                "equippableRightRotation": {
+                    "w": 1,
+                    "x": -1.52587890625e-05,
+                    "y": -1.52587890625e-05,
+                    "z": -1.52587890625e-05
+                }
+            },
+            "id": "{a00a3a0e-9419-44e1-aafb-edccace25c9d}",
+            "lastEdited": 1543023577682699,
+            "lastEditedBy": "{c6ab2e61-b90c-42d0-8ef6-a92e08161fe6}",
+            "owningAvatarID": "{00000000-0000-0000-0000-000000000000}",
+            "position": {
+                "x": 0,
+                "y": 0.3332090377807617,
+                "z": 0
+            },
+            "queryAACube": {
+                "scale": 1.039230465888977,
+                "x": -0.5196152329444885,
+                "y": -0.1864061951637268,
+                "z": -0.5196152329444885
+            },
+            "rotation": {
+                "w": 0.12024694681167603,
+                "x": -2.3386970497085713e-05,
+                "y": 0.9927440285682678,
+                "z": 4.2207841033814475e-05
+            },
+            "shape": "Cube",
+            "type": "Box"
+        }
+    ],
+    "Id": "{43164f88-84b6-485a-9b42-2c2fac0883af}",
+    "Version": 96
+}

@@ -3,7 +3,7 @@
         {
             "type": "Box",
             "name": "portal solo launcher",
-            "script": "(function () {
+            "serverScripts": "(function () {
 this.preload = function (launcherId) {
 var launcherProps = Entities.getEntityProperties(launcherId);
 var point = Vec3.sum(launcherProps.position, {x:0, y:0, z:-2});

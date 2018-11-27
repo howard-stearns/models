@@ -3,31 +3,30 @@
         {
             "type": "Box",
             "name": "portal solo launcher",
-            "serverScripts": "(function () {
+            "script": "(function () {
 this.preload = function (launcherId) {
 var launcherProps = Entities.getEntityProperties(launcherId);
-var model = 'http://mpassets.highfidelity.com/f9085148-02f3-401c-b823-1df9f616f362-v1/mirror.fbx';
-var script = 'http://localhost:8000/portal-client.js?v=113';
+var script = 'http://howard-stearns.github.io/models/portal/portal-client.js';
 var portal1 = Entities.addEntity({
    name: 'portal pair',
    position: Vec3.sum(launcherProps.position, {x:0, y:0, z:-5}),
    angularVelocity: {x: 0, y: 0.35, z: 0},
    angularDamping: 0,
-   dimensions: {x: 2, y: 2, z: 0.01},
+   dimensions: {x: 2, y: 2, z: 0.1},
    script: script,
-   modelURL: model,
-   shapeType: 'simple-hull',
-   type: 'Model'
+   collisionless: true,
+   color: {red: 20, green: 20, blue: 20},
+   type: 'Box'
 });
 var portal2 = Entities.addEntity({
    name: 'portal pair',
-   dimensions: {x: 2, y: 2, z: 0.01},
+   dimensions: {x: 2, y: 2, z: 0.1},
    position: launcherProps.position,
    script: script,
    userData: JSON.stringify({farID: portal1}),
-   modelURL: model,
-   shapeType: 'simple-hull',
-   type: 'Model'
+   collisionless: true,
+   color: {red: 20, green: 20, blue: 20},
+   type: 'Box'
 });
 var datum = {userData: JSON.stringify({farID: portal2})};
 Script.setTimeout(function () {

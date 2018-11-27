@@ -2,9 +2,9 @@
     "Entities": [
         {
             "name": "portal",
-            "dimensions": { "x": 2, "y": 2, "z": 0.51 },
+            "dimensions": { "x": 2, "y": 2, "z": 0.1 },
 
-			"script": "http://localhost:8000/portal-client.js?v=119",
+            "script": "http://howard-stearns.github.io/models/portal/portal-client.js",
             "collisionless": true,
 
             "color": { "red": 20, "green": 20, "blue": 20 },

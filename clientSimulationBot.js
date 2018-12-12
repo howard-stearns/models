@@ -29,7 +29,7 @@ var RECORDINGS_ARRAY = [
   "waiting9.hfr",
   "waiting10.hfr",
   "bot1.hfr",
-  "bot2.hfr",
+  "bot2.hfr"/*,
   "bot3.hfr",
   "bot4.hfr",
   "check_12.hfr",
@@ -38,7 +38,7 @@ var RECORDINGS_ARRAY = [
   "usher1.hfr",
   "usher2.hfr",
   "usher3.hfr",
-  "jim.hfr"
+  "jim.hfr"*/
 ];
 
 var RECORDING_URL = "http://hifi-content.s3.amazonaws.com/DomainContent/Event%20/NPC%27s/" + RECORDINGS_ARRAY[Math.floor(Math.random() * RECORDINGS_ARRAY.length)];

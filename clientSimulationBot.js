@@ -34,11 +34,11 @@ var RECORDINGS_ARRAY = [
   "bot4.hfr",
   "check_12.hfr",
   "peanuts.hfr",
-  "claude.hfr",  //new start
+  "claude.hfr",  
   "usher1.hfr",
-  "usher2.hfr"/*,
+  "usher2.hfr", //new start
   "usher3.hfr",
-  "jim.hfr"*/
+  "jim.hfr"
 ];
 
 var RECORDING_URL = "http://hifi-content.s3.amazonaws.com/DomainContent/Event%20/NPC%27s/" + RECORDINGS_ARRAY[Math.floor(Math.random() * RECORDINGS_ARRAY.length)];

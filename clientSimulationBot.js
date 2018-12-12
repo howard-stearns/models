@@ -29,11 +29,11 @@ var RECORDINGS_ARRAY = [
   "waiting9.hfr",
   "waiting10.hfr",
   "bot1.hfr",
-  "bot2.hfr"/*,
+  "bot2.hfr", //new start
   "bot3.hfr",
   "bot4.hfr",
   "check_12.hfr",
-  "peanuts.hfr",
+  "peanuts.hfr"/*,
   "claude.hfr",
   "usher1.hfr",
   "usher2.hfr",

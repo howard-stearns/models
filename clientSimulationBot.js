@@ -25,7 +25,7 @@ var RECORDINGS_ARRAY = [
   // "waiting5.hfr", // Moves downward
   //"waiting6.hfr", //bad audio
   // "waiting7.hfr", // Bad Model
-  "waiting8.hfr", //this or 6 is bad audio
+  //"waiting8.hfr", // bad audio
   "waiting9.hfr",
   "waiting10.hfr",
   "bot1.hfr",

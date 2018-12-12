@@ -23,9 +23,9 @@ var RECORDINGS_ARRAY = [
   // "waiting3.hfr", // Bad Model
   "waiting4.hfr",
   // "waiting5.hfr", // Moves downward
-  //"waiting6.hfr", //bad audio
+  "waiting6.hfr", //bad audio?
   // "waiting7.hfr", // Bad Model
-  //"waiting8.hfr", // bad audio
+  "waiting8.hfr", // bad audio?
   "waiting9.hfr",
   "waiting10.hfr",
   "bot1.hfr",
@@ -36,7 +36,7 @@ var RECORDINGS_ARRAY = [
   "peanuts.hfr",
   "claude.hfr",  
   "usher1.hfr",
-  "usher2.hfr", //new start
+  "usher2.hfr",
   "usher3.hfr",
   "jim.hfr"
 ];

@@ -5,7 +5,7 @@
 (function () {
     var id, that = this;
     var baseColor; // For unhighlight
-    var text = "<i>Click to edit</i>", openLinksInWorld = true;
+    var text = "<i>Click to edit</i>";
     function saveBaseColor(entityID) {
         baseColor = Entities.getEntityProperties(entityID, ['color']).color;
         print("saveBaseColor", entityID);
@@ -14,15 +14,20 @@
         // explicit empty string ok, else keep old if falsey
         text = (string === '') ? string : (string || text);
     }
-    function updateFromUserData(entityID) {
-        var userDataString = Entities.getEntityProperties(entityID, ['userData']).userData;
-        var data = JSON.parse(userDataString || "{}");
-        saveText(data.text);
-        openLinksInWorld = data.openLinksInWorld;
+    function updateLocalsFromProperties(entityID) {
+        var sourceUrl = Entities.getEntityProperties(entityID, ['sourceUrl']).sourceUrl;
+        var prefix = sourceUrl.match(/^data:(?:text\/html)?,/);
+        if (!prefix) {
+            print("Sticky note sourceUrl is not a data:, url:", sourceUrl);
+            return;
+        }
+        var decoded = decodeURIComponent(sourceUrl.substring(prefix[0].length));
+        print('hrs fixme source:', sourceUrl, 'prefix:', prefix, 'length', prefix.length, 'decoded:', decoded);
+        saveText(decoded);
     }
-    function updateUserDataFromLocals(entityID) {
+    function updatePropertiesFromLocals(entityID) {
         Entities.editEntity(entityID, {
-            userData: JSON.stringify({text: text, openLinksInWorld: openLinksInWorld})
+            sourceUrl: "data:text/html," + encodeURIComponent(text)
         });
     }
     function highlightColorComponent(unhighlighted) {
@@ -48,9 +53,9 @@
     }
     function pointerdown(entityID, data) {
         print("start drag", entityID, JSON.stringify(data));
-        updateFromUserData(entityID);
+        updateLocalsFromProperties(entityID);
         saveText(Window.prompt("Enter text", text));
-        updateUserDataFromLocals(entityID);
+        updatePropertiesFromLocals(entityID);
     }
     function pointermove(entityID, data) {
         // Button is "None" unless this is the first event in which it pressed.

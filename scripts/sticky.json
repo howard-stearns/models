@@ -1,0 +1,27 @@
+{
+  "DataVersion": 0,
+  "Entities": [
+    {
+    "type": "Box",
+    "dimensions": {
+        "x": 1,
+        "y": 1,
+        "z": 0.009999999776482582
+    },
+    "script": "http://localhost:3000/sticky.js?v=23",
+    "collisionless": true,
+    "ignoreForCollisions": true,
+    "name": "sticky",
+    "color": {
+        "red": 240,
+        "green": 0,
+        "blue": 96
+    },
+    "grab": {
+        "grabbable": false,
+        "triggerable": true
+    }
+}
+    ],
+  "Version": 100
+}

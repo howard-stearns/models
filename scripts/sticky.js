@@ -4,31 +4,34 @@
 
 (function () {
     var id, that = this;
-    var baseColor; // For unhighlight
     var text = "<i>Click to edit</i>";
-    function saveBaseColor(entityID) {
-        baseColor = Entities.getEntityProperties(entityID, ['color']).color;
-        print("saveBaseColor", entityID);
-    }
+    var baseRed = 238, baseGreen = 232, baseBlue = 170;
     function saveText(string) {
         // explicit empty string ok, else keep old if falsey
         text = (string === '') ? string : (string || text);
     }
     function updateLocalsFromProperties(entityID) {
         var sourceUrl = Entities.getEntityProperties(entityID, ['sourceUrl']).sourceUrl;
-        var prefix = sourceUrl.match(/^data:(?:text\/html)?,/);
+        // One might think that for a whole URL, you would use decodeURI, but that doesn't handle the HTML angle brackets. Use decodeURIComponent.
+        var decodedUrl = decodeURIComponent(sourceUrl);
+        // <style>body {background-color: RGB(238, 232, 170);}</style><i>Click to edit</i>
+        var prefix = decodedUrl.match(/^data:(?:text\/html)?,(?:\<style>body {background-color: RGB\((\d{1,3}), (\d{1,3}), (\d{1,3}\));}<\/style>)?/);
         if (!prefix) {
             print("Sticky note sourceUrl is not a data:, url:", sourceUrl);
             return;
         }
-        var decoded = decodeURIComponent(sourceUrl.substring(prefix[0].length));
-        print('hrs fixme source:', sourceUrl, 'prefix:', prefix, 'length', prefix.length, 'decoded:', decoded);
-        saveText(decoded);
+        if (prefix[1]) { baseRed = parseInt(prefix[1], 10); }
+        if (prefix[2]) { baseGreen = parseInt(prefix[2], 10); }
+        if (prefix[3]) { baseBlue = parseInt(prefix[3], 10); }
+        var content = decodedUrl.substring(prefix[0].length);
+        print('hrs fixme source:', sourceUrl, 'decoded:', decodedUrl, 'prefix:', prefix, 'length:', prefix[0].length, 'content:', content);
+        saveText(content);
     }
-    function updatePropertiesFromLocals(entityID) {
-        Entities.editEntity(entityID, {
-            sourceUrl: "data:text/html," + encodeURIComponent(text)
-        });
+    function updatePropertiesFromLocals(entityID, red, green, blue) {
+        function color(requested, defaulted) { return (requested === undefined) ? defaulted : requested; }
+        var url = "data:text/html," + encodeURIComponent("<style>body {background-color: RGB(" + color(red, baseRed) + ", " + color(green, baseGreen) + ", " + color(blue, baseBlue) + ");}</style>" + text);
+        print('hrs fixme new text:', text, 'source:', url);
+        Entities.editEntity(entityID, { sourceUrl: url });
     }
     function highlightColorComponent(unhighlighted) {
         var highlighted = Math.min(255, Math.max(30, 1.3 * (unhighlighted / 256) * 256));
@@ -38,24 +41,18 @@
     function pointerenter(entityID, data) {
         // Highlight to show we're hot.
         print("highlight", entityID, JSON.stringify(data));
-        saveBaseColor(entityID);
-        Entities.editEntity(entityID, {
-            color: {
-                red: highlightColorComponent(baseColor.red),
-                green: highlightColorComponent(baseColor.green),
-                blue: highlightColorComponent(baseColor.blue)
-            }
-        });
+        updateLocalsFromProperties(entityID);
+        updatePropertiesFromLocals(entityID,
+                                   highlightColorComponent(baseRed),
+                                   highlightColorComponent(baseGreen),
+                                   highlightColorComponent(baseBlue));
     }
     function pointerleave(entityID, data) {
         print("unhighlight", entityID, JSON.stringify(data));
-        Entities.editEntity(entityID, {color: baseColor});
+        updatePropertiesFromLocals(entityID);
     }
     function pointerdown(entityID, data) {
         print("start drag", entityID, JSON.stringify(data));
-        updateLocalsFromProperties(entityID);
-        saveText(Window.prompt("Enter text", text));
-        updatePropertiesFromLocals(entityID);
     }
     function pointermove(entityID, data) {
         // Button is "None" unless this is the first event in which it pressed.
@@ -65,11 +62,14 @@
     }
     function pointerup(entityID, data) {
         print("end drag", entityID, JSON.stringify(data));
+        saveText(Window.prompt("Enter text", text));
+        updatePropertiesFromLocals(entityID);
     }
     that.preload = function (entityID) {
         id = entityID;
         print(entityID);
-        saveBaseColor(entityID); // Imperfect defensive programming in case we miss a pointerenter.
+        updateLocalsFromProperties(entityID);
+        updatePropertiesFromLocals(entityID);
     };
     that.unload = function () {
         print(id, 'shutting down');

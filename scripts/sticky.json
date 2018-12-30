@@ -10,7 +10,7 @@
             },
             "dpi": 16,
             "sourceUrl": "data:,%3Ci%3EClick%20to%20edit%3C%2Fi%3E",
-            "script": "http://localhost:3000/sticky.js?v=63",
+            "script": "http://localhost:3000/sticky.js?v=71",
             "collisionless": true,
             "ignoreForCollisions": true,
             "name": "sticky",

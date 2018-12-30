@@ -42,6 +42,7 @@
     }
 
     // UI helpers.
+    function ignore() {}
     function localToWorld(localOffset, framePosition, frameOrientation) {
         var worldOffset = Vec3.multiplyQbyV(frameOrientation, localOffset);
         return Vec3.sum(framePosition, worldOffset);
@@ -51,27 +52,42 @@
         var worldOffset = Vec3.subtract(worldPosition, framePosition);
         return Vec3.multiplyQbyV(inverseFrameOrientation, worldOffset);
     }
+    function isPointerNotPressed(data) {
+        // Button is "None" unless this is the first event in which it pressed.
+        // Then after that, one of the isMumbleHeld will be true
+        return (data.button === "None") && !data.isPrimaryHeld && !data.isSecondaryHeld && !data.isTertiaryHeld;
+    }
     function highlightColorComponent(unhighlighted) {
         var highlighted = Math.min(255, Math.max(30, 1.3 * (unhighlighted / 256) * 256));
         return highlighted;
     }
-    function offset(position, unitDirection, distance) {
-        return Vec3.sum(position, Vec3.multiply(distance, unitDirection));
+    function offset(position, direction, factor) {
+        return Vec3.sum(position, Vec3.multiply(factor, direction));
     }
     var upperLeft, upperRight, lowerLeft, lowerRight, affordanceFraction = 0.15, affordanceAlpha = 0;
-    function sizeAffordance(affordanceID, direction) {
+    var affordanceDirections = {};
+    function sizeAffordance(affordanceID) {
+        var direction = affordanceDirections[affordanceID];
         Entities.editEntity(affordanceID, {
             visible: true,
             alpha: affordanceAlpha,
             color: {red: baseRed, green: baseGreen, blue: baseBlue},
-            localPosition: {x: direction.x * width, y: direction.y * height, z: 0},
+            localPosition: {x: direction.x * width * 0.5, y: direction.y * height * 0.5, z: 0},
             dimensions: {x: affordanceFraction * width, y: affordanceFraction * height, z: 3 * halfThickness}
         });
     }
+    function sizeAffordances() {
+        sizeAffordance(upperLeft);
+        sizeAffordance(upperRight);
+        sizeAffordance(lowerLeft);
+        sizeAffordance(lowerRight);
+    }
+    var INITIAL_AFFORDANCE_ALPHA = 0.9;
     function fadeAffordances() {
         var properties;
         affordanceAlpha -= 0.01;
         if (affordanceAlpha <= 0.05) {
+            affordanceAlpha = 0;
             Script.update.disconnect(fadeAffordances);
             properties = {visible: false};
         } else {
@@ -82,13 +98,53 @@
         Entities.editEntity(lowerLeft, properties);
         Entities.editEntity(lowerRight, properties);
     }
-    function makeAffordance(entityID, label) {
-        return Entities.addEntity({
+    function startFadingAffordances() {
+        if (affordanceAlpha < INITIAL_AFFORDANCE_ALPHA) { return; }
+        Script.update.connect(fadeAffordances);
+    }
+    function showAffordances() {
+        if (affordanceAlpha) {
+            Script.update.disconnect(fadeAffordances);
+        }
+        affordanceAlpha = INITIAL_AFFORDANCE_ALPHA;
+        sizeAffordances();
+    }
+    var sizeAffordanceStartPoint, mainEntityID, mainEntityStartPosition, mainEntityStartInverseOrientation, startWidth, startHeight;
+    function affordancePointerdown(entityID, data) {
+        ignore(entityID);
+        sizeAffordanceStartPoint = data.pos3D;
+        startWidth = width;
+        startHeight = height;
+        var properties = Entities.getEntityProperties(mainEntityID, ['position', 'rotation']);
+        mainEntityStartPosition = properties.position;
+        mainEntityStartInverseOrientation = Quat.inverse(properties.rotation);
+    }
+    function affordancePointermove(entityID, data) {
+        if (isPointerNotPressed(data)) { return; }
+        var worldDelta = Vec3.subtract(data.pos3D, sizeAffordanceStartPoint);
+        var localDelta = worldToLocal(data.pos3D, sizeAffordanceStartPoint, null, mainEntityStartInverseOrientation);
+        var growth = Vec3.multiplyVbyV(localDelta, affordanceDirections[entityID]);
+        width = startWidth + growth.x;
+        height = startHeight + growth.y;
+        Entities.editEntity(mainEntityID, {
+            dimensions: {x: width, y: height, z: halfThickness},
+            position: offset(mainEntityStartPosition, worldDelta, 0.5)
+        });
+        sizeAffordances();
+    }
+    function makeAffordance(entityID, label, direction) {
+        var affordanceID = Entities.addEntity({
             type: 'Box',
             visible: false,
             parentID: entityID,
             name: label
         });
+        affordanceDirections[affordanceID] = direction;
+        Script.addEventHandler(affordanceID, "hoverEnterEntity", showAffordances);
+        Script.addEventHandler(affordanceID, "hoverLeaveEntity", startFadingAffordances);
+        Script.addEventHandler(affordanceID, "mousePressOnEntity", affordancePointerdown);
+        Script.addEventHandler(affordanceID, "mouseMoveOnEntity", affordancePointermove);
+        return affordanceID;
     }
     var didDrag, lastPos3D, initialLocalOffset;
     var MINIMUM_3D_MOVEMENT = 0.001, DOT_PRODUCT_SAME = 0.01;
@@ -125,16 +181,12 @@
                                    highlightColorComponent(baseRed),
                                    highlightColorComponent(baseGreen),
                                    highlightColorComponent(baseBlue));
-        affordanceAlpha = 0.9;
-        sizeAffordance(upperLeft, {x: -0.5, y: 0.5, z: 0});
-        sizeAffordance(upperRight, {x: 0.5, y: 0.5, z: 0});
-        sizeAffordance(lowerLeft, {x: -0.5, y: -0.5, z: 0});
-        sizeAffordance(lowerRight, {x: 0.5, y: -0.5, z: 0});
+        showAffordances();
     }
     function pointerleave(entityID, data) {
         print("unhighlight", entityID, JSON.stringify(data));
         updatePropertiesFromLocals(entityID);
-        Script.update.connect(fadeAffordances);
+        startFadingAffordances();
     }
     function pointerdown(entityID, data) {
         print("start drag", entityID, JSON.stringify(data));
@@ -144,9 +196,7 @@
         initialLocalOffset = Vec3.multiply(-1, worldToLocal(lastPos3D, properties.position, properties.rotation));
     }
     function pointermove(entityID, data) {
-        // Button is "None" unless this is the first event in which it pressed.
-        // Then after that, one of the isMumbleHeld will be true
-        if ((data.button === "None") && !data.isPrimaryHeld && !data.isSecondaryHeld && !data.isTertiaryHeld) { return; }
+        if (isPointerNotPressed(data)) { return; }
         //print("drag", entityID, JSON.stringify(data));
         updatePosition(entityID, data.pos3D, data.direction);
     }
@@ -162,10 +212,11 @@
         print(entityID);
         updateLocalsFromProperties(entityID);
         updatePropertiesFromLocals(entityID);
-        upperLeft = makeAffordance(entityID, 'upperLeftAffordance');
-        upperRight = makeAffordance(entityID, 'upperRightAffordance');
-        lowerLeft = makeAffordance(entityID, 'lowerLeftAffordance');
-        lowerRight = makeAffordance(entityID, 'lowerRightAffordance');
+        mainEntityID = entityID;
+        upperLeft = makeAffordance(entityID, 'upperLeftAffordance', {x: -1, y: 1, z: 0});
+        upperRight = makeAffordance(entityID, 'upperRightAffordance', {x: 1, y: 1, z: 0});
+        lowerLeft = makeAffordance(entityID, 'lowerLeftAffordance', {x: -1, y: -1, z: 0});
+        lowerRight = makeAffordance(entityID, 'lowerRightAffordance', {x: 1, y: -1, z: 0});
     };
     that.unload = function (entityID) {
         print(entityID, 'shutting down');

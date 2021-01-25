@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+  <body>
+    <div id="output"></div>
+    <script type="text/javascript">
+
+function log(string, tag = 'p') {
+    console.log(string);
+    let div = document.createElement(tag);
+    div.textContent = string;
+    output.append(div);
+}
+async function report() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
+        log("enumerateDevices() not supported.");
+        return;
+    }
+    function reportDevice(device) {
+        log(`${device.kind}: ${device.label} id: ${device.deviceId}, groupID: ${device.groupId}`);
+    }
+    try {
+        log('Before obtaining permission, device info is:');
+        let devices = await navigator.mediaDevices.enumerateDevices()
+        devices.forEach(reportDevice);
+        let stream = await navigator.mediaDevices.getUserMedia({audio: true});
+        log('', 'hr');
+        log('After obtaining a microphone WITHOUT asking for echo cancellation, device info is:');
+        devices = await navigator.mediaDevices.enumerateDevices()
+        devices.forEach(reportDevice);
+    } catch (e) {
+        log(e);
+    }
+}
+report();
+
+    </script>
+
+  </body>
+</html>

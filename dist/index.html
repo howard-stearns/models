@@ -303,7 +303,12 @@
             // Connect to the High Fidelity Audio Spatial API Server by supplying your own JWT here.
             // Follow this guide to get a JWT: https://www.highfidelity.com/api/guides/misc/getAJWT
             // If you don't need a guide, obtain JWT credentials after signing up for a developer account at https://account.highfidelity.com/dev/account
-            const HIFI_AUDIO_JWT = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBfaWQiOiIyZTYzYjRiNS0wNmFhLTQ3NmEtODhiYS01OTExOGU5MTVlMWIiLCJ1c2VyX2lkIjoiYnJvd3NlciIsInNwYWNlX2lkIjoiZGZhMWM4ZjMtZjU5OS00YjIwLTg2MDktOWQzN2YyNDZmZGFkIiwic3RhY2siOiJhdWRpb25ldC1taXhlci1hcGktc3RhZ2luZy0yNSJ9.B65phIjC4H3_-cQ5jvwM8L1aSLrtaxxpVGWc_OfwoSs";
+          const HIFI_AUDIO_JWT =
+                "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBfaWQiOiJhYjNlNTkzYy1kMGE1LTQ1NDEtOTM5ZC02MzczNDE5Zjg4NGYiLCJ1c2VyX2lkIjoiYnJvd3NlciIsInNwYWNlX2lkIjoiNjk1OGQxNWEtM2UxOC00NTM1LWI0ZjgtYTcxZjIxMGQwYjJlIiwic3RhY2siOiJhdWRpb25ldC1taXhlci1hcGktc3RhZ2luZy0yNSJ9.KgJL2efJOypyfBgVje_9sNpuPufd7NKT1oq0XPo6JuM";
+                  //"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBfaWQiOiIyZTYzYjRiNS0wNmFhLTQ3NmEtODhiYS01OTExOGU5MTVlMWIiLCJ1c2VyX2lkIjoiYnJvd3NlciIsInNwYWNlX2lkIjoiZGZhMWM4ZjMtZjU5OS00YjIwLTg2MDktOWQzN2YyNDZmZGFkIiwic3RhY2siOiJhdWRpb25ldC1taXhlci1hcGktc3RhZ2luZy0yNSJ9.B65phIjC4H3_-cQ5jvwM8L1aSLrtaxxpVGWc_OfwoSs";
+
+                  //"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBfaWQiOiIxOGU2MmUzNi0wOGRjLTQ5ZWYtYTdjNi01NWRlNTU2ZGY4OTgiLCJ1c2VyX2lkIjoiYnJvd3NlciIsInNwYWNlX2lkIjoiOWU2NGQzYTItYTUzNi00MzZkLWE3MTMtMmY1MTYwYTM3NjRkIiwic3RhY2siOiJhdWRpb25ldC1taXhlci1hcGktc3RhZ2luZy0yNCJ9.bAY0Wp10qbXd4CqfGEP4Yp1abNNMayflWjMRruJNpSY";
+          //"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBfaWQiOiIxMWI2OWIxMS0xMzgxLTQxNjAtYWYxMS01NTkwNmE1NWJlNmUiLCJ1c2VyX2lkIjoiYnJvd3NlciIsInNwYWNlX2lkIjoiODVmNTE0NGQtMDVjYy00NWU5LWE2OWItYjY4ZWNkZDFjMGEwIiwic3RhY2siOiJhdWRpb25ldC1taXhlci1hcGktaG9iYnktMTIifQ.rlBdip7-h1pn8sKEcfeBeuc2OpH2tCtdLdjwB9eqzyk";
             let connectResponse;
             try {
                 let stackURLOverride = new URLSearchParams(location.search).get("stack");
